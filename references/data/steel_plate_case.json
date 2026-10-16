@@ -1,0 +1,21 @@
+{
+  "source": "Report 'Simulation thermique transitoire d'une plaquette d'acier soumise a une temperature exterieure variable' (ANSYS Fluent 2020 R1)",
+  "geometry": {"length_m": 0.1, "width_m": 0.1, "thickness_m": 0.005, "model": "1D through thickness, lateral faces adiabatic"},
+  "material": {"k_W_per_mK": 60, "cp_J_per_kgK": 434, "rho_kg_per_m3": 7850},
+  "outer_face_x0": {"type": "convective", "h_W_per_m2K": 22, "T_inf": "T_sa(t) from ttab file, hourly data"},
+  "inner_face_xL": {"type": "convective", "h_W_per_m2K": 9, "T_inf_C": 26},
+  "solar_absorptivity": 0.55,
+  "initial_T_C": 26,
+  "duration_h": 72,
+  "dt_s": 300,
+  "ansys_mesh": "450 nodes, 196 elements",
+  "ansys_reported_inner_face_peaks_C": [51, 53, 60],
+  "derived": {
+    "biot_outer": 0.00183,
+    "time_constant_s": 549.5,
+    "through_thickness_diffusion_time_s": 1.42,
+    "quasi_steady_inner_face": "T ~= 0.710 * T_sa + 0.290 * 26 C (conduction resistance is 0.05% of the total)"
+  },
+  "missing": ["ttab file (3 days of T_sa)", "ANSYS inner-face curve as CSV"],
+  "files_expected_when_available": ["references/data/ttab.csv (t_s,T_sa_C)", "references/data/ansys_inner_face.csv (t_s,T_C)"]
+}

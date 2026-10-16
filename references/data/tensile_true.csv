@@ -1,0 +1,13 @@
+# True (rational) tensile curve, eps = ln(1+e), sigma = R(1+e). Source: same document, p. 3.
+# Checked: these equal ln(1+e) and R(1+e) of tensile_engineering.csv to 4 significant digits.
+eps_true,sigma_true_MPa
+0,0
+0.000575,120.7504
+0.001494,310.5611
+0.010524,394.9973
+0.031581,457.2405
+0.053403,490.9348
+0.087063,525.4933
+0.131392,557.4827
+0.153926,570.6438
+0.174323,581.3758

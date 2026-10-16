@@ -1,0 +1,17 @@
+{
+  "source": "M. R. Kabiri, ENSAM Meknes, 'Metallurgie physique', Serie d'exercices n.2: Diffusion dans les metaux, with corrige",
+  "R_J_per_molK": 8.314,
+  "ex1_steady_flux": {"D_m2_per_s": 3e-11, "C_at_5mm_kg_per_m3": 1.2, "C_at_10mm_kg_per_m3": 0.8, "expected_J_kg_per_m2s": 2.4e-9, "doc_value": 2.4e-12, "note": "doc value is off by 1000 (mm not converted)"},
+  "ex2_carburizing": {"C0_wt": 0.25, "Cs_wt": 1.2, "T_C": 950, "D_m2_per_s": 1.6e-11, "x_m": 0.0005, "C_target_wt": 0.8, "expected_t_s": 25370, "doc_value_h": 7.025, "note": "doc interpolates the erf table; exact erfinv gives 7.047 h"},
+  "ex3_equivalent_time": {"D_500C_m2_per_s": 4.8e-14, "D_600C_m2_per_s": 5.3e-13, "t_600C_h": 10, "expected_t_500C_h": 110.4},
+  "ex4_diffusion_couple": {"D0_m2_per_s": 1.8e-5, "Q_J_per_mol": 152000, "T1_K": 1000, "T2_K": 800, "x1_mm": 15.5, "expected_D1_m2_per_s": 2.067e-13, "expected_D2_m2_per_s": 2.140e-15, "expected_x2_mm": 1.577},
+  "ex5_boron_in_silicon": {
+    "Cs_at_per_cm3": 3e20, "t_s": 360,
+    "D_1100C_cm2_per_s": 4e-13, "D_1200C_cm2_per_s": 3e-12,
+    "expected_dose_M_at_per_cm2": 4.062e15,
+    "expected_surface_C_1200C_at_per_cm3": 6.97e19, "doc_value": 2.8e19, "doc_note": "doc value matches t = 36 min, not 6 min",
+    "expected_Q_kJ_per_mol": 338.9,
+    "expected_D0_cm2_per_s": 3.11, "doc_D0": "3.2 m2/s (unit slip, should be cm2/s)",
+    "expected_D_1300C_cm2_per_s": 1.74e-11, "doc_value_D_1300C": "5.86e-11 m2/s"
+  }
+}

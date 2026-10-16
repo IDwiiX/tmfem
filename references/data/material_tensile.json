@@ -1,0 +1,13 @@
+{
+  "source": "M. R. Kabiri, ENSAM Meknes, TP 1, identified parameters table, p. 4",
+  "E_GPa": 207.423,
+  "Re_MPa": 310.862,
+  "Rm_MPa": 488.3705,
+  "elongation_A": 0.190,
+  "ludwik_K_MPa": 559.27,
+  "ludwik_m": 0.4077,
+  "doc_n_reported": 2.41,
+  "nu_assumed": 0.3,
+  "law_to_implement": "sigma = sigma_y + K * eps_p^m (Ludwik). The source writes Hollomon sigma = K eps_p^n but fits ln(sigma - sigma_y) = (1/n) ln(eps_p) + ln(K), so m = 1/n = 0.4077.",
+  "abaqus_result_at_sigma_457MPa": {"sigma_yy_MPa": 457, "eps_xx": -0.01535, "eps_yy": 0.03158, "eps_zz": -0.01535}
+}

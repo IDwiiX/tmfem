@@ -1,0 +1,13 @@
+# Engineering (conventional) tensile curve, smooth specimen. Source: M. R. Kabiri, ENSAM Meknes, "Comportement mecanique des materiaux", TP 1, p. 3.
+# e = engineering strain (-), R = F/S0 engineering stress (MPa)
+e,R_MPa
+0,0
+0.000575,120.681
+0.001495,310.0975
+0.01058,390.862
+0.032085,443.026
+0.054855,465.405
+0.090965,481.6775
+0.140415,488.842
+0.166405,489.233
+0.19044,488.3705

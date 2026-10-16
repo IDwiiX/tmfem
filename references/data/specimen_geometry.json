@@ -1,0 +1,11 @@
+{
+  "source": "M. R. Kabiri, ENSAM Meknes, TP 1, Figure 1 and p. 4",
+  "units": "mm",
+  "total_length": 180,
+  "grip_length_each_end": 30,
+  "head_width": 30,
+  "gauge_width": 10,
+  "fillet_radius": 8,
+  "gauge_model_length_used_in_abaqus": 104,
+  "note": "The Abaqus model in the source keeps only the 104 x 10 mm gauge part with forces on both ends. Thickness is not given; a '2' dimension near the fillet is unclear, ask before using it."
+}

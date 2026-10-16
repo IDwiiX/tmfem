@@ -16,3 +16,10 @@ function(tmfem_add_phase_tests phase)
 endfunction()
 
 tmfem_add_phase_tests(phase0 SOURCES phase0/smoke.cpp)
+tmfem_add_phase_tests(phase1 SOURCES
+  phase1/heat1d_units.cpp
+  phase1/diffusion_exercises.cpp
+  phase1/carburizing.cpp
+  phase1/thin_film.cpp
+  phase1/steel_plate.cpp
+  phase1/heat1d_convergence.cpp)

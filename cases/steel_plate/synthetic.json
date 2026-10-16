@@ -1,0 +1,12 @@
+{
+  "case_type": "heat1d",
+  "description": "Steel plate 5 mm, convective both faces, driven by the synthetic sol-air signal (P1-j, P1-k).",
+  "source": "references/data/steel_plate_case.json (material, h, initial and inner temperatures, dt, duration)",
+  "mesh": {"length_m": 0.005, "n_elements": 20, "grading_ratio": 1.0},
+  "material": {"k_W_per_mK": 60, "rho_kg_per_m3": 7850, "cp_J_per_kgK": 434},
+  "initial_T_C": 26,
+  "left": {"type": "convective", "h_W_per_m2K": 22, "T_inf_file": "cases/steel_plate/synthetic_tsa.csv"},
+  "right": {"type": "convective", "h_W_per_m2K": 9, "T_inf_C": 26},
+  "time": {"theta": 1.0, "dt_s": 300, "t_end_s": 259200, "mass": "consistent"},
+  "output": {"csv": "results/steel_plate/synthetic_faces.csv", "probes_m": [0.0, 0.005]}
+}

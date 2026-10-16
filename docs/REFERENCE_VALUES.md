@@ -19,7 +19,7 @@ test to match a "Source says" value that is marked wrong.
 | P1-h | Thin film, numerical | Dose conservation; peak ~ t^-1/2 | exact | n/a | 1e-10 relative; slope -0.5 +/- 0.01 |
 | P1-i | Steel plate (steel_plate_case.json) | Biot number; time constant | 0.00183; 549.5 s | not given | exact formulas |
 | P1-j | Steel plate, synthetic T_sa | 1D FE vs lumped ODE (RK4, small step) | agreement | n/a | max 0.05 K |
-| P1-k | Steel plate, synthetic T_sa | Through-thickness temperature difference | below 0.01 K | n/a | bound |
+| P1-k | Steel plate, synthetic T_sa | Max through-thickness temperature difference | quasi-steady (L/k)/(1/h_e + L/k + 1/h_i) * max\|T_sa - T_in\| = 0.0255 K | below 0.01 K (infeasible for a 48 K swing; holds only if \|T_sa - T_in\| < 19 K) | 5% |
 | P1-l | Steel plate, real ttab (when provided) | Inner-face peaks; RMS vs ANSYS | report | about 51, 53, 60 C | report only, no tuning |
 | P1-m | Any analytic case | Observed order: BE time, CN time, space | 1, 2, 2 | n/a | +/- 0.15 |
 

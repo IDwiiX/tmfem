@@ -21,6 +21,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(Warnings)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+include(Json)
 
 add_subdirectory(src)
 

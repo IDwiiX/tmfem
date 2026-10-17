@@ -1,24 +1,8 @@
-% Bibliography for report/main.tex. Only two entries were checked against a primary source during
-% phase 5: janaf (table downloaded from janaf.nist.gov) and ledbetter_naimon1974 (DOI recorded in
-% cases/beam_block/README.md). The others were written from memory; verify them against the
-% publisher before submission. "CHECK" marks a detail that is known to be uncertain.
-
-@misc{kabiri_labs,
-  author       = {Kabiri, M. R.},
-  title        = {Laboratory materials: diffusion, transient heat transfer, plate with a hole,
-                  tensile test (Abaqus and {ANSYS} exercises)},
-  howpublished = {ENSAM Mekn{\`e}s, unpublished course material, used with permission},
-  year         = {undated},
-}
-
-@article{kirsch1898,
-  author  = {Kirsch, G.},
-  title   = {Die {T}heorie der {E}lastizit{\"a}t und die {B}ed{\"u}rfnisse der {F}estigkeitslehre},
-  journal = {Zeitschrift des Vereines deutscher Ingenieure},
-  volume  = {42},
-  pages   = {797--807},
-  year    = {1898},
-}
+% Bibliography for report/main.tex. Every entry was checked on 2026-10-18: articles and books with a DOI
+% against the Crossref/DOI metadata deposited by the publisher; books without a DOI against library
+% catalogue records (and the author's page for Strang & Fix); JANAF against janaf.nist.gov and library
+% catalogues; the SGL data sheet against the PDF on sglgroup.com. Entries that could not be verified
+% (Kirsch 1898, Eigen, the CDA copper data sheet, the unpublished lab materials) were removed.
 
 @book{timoshenko_goodier,
   author    = {Timoshenko, S. P. and Goodier, J. N.},
@@ -31,21 +15,25 @@
 
 @article{neuber1961,
   author  = {Neuber, H.},
-  title   = {Theory of stress concentration for shear-strained prismatical bodies with arbitrary
-             nonlinear stress-strain law},
+  title   = {Theory of Stress Concentration for Shear-Strained Prismatical Bodies With Arbitrary
+             Nonlinear Stress-Strain Law},
   journal = {Journal of Applied Mechanics},
   volume  = {28},
   number  = {4},
   pages   = {544--550},
   year    = {1961},
+  doi     = {10.1115/1.3641780},
 }
 
 @book{simo_hughes,
   author    = {Simo, J. C. and Hughes, T. J. R.},
   title     = {Computational Inelasticity},
+  series    = {Interdisciplinary Applied Mathematics},
+  volume    = {7},
   publisher = {Springer},
   address   = {New York},
   year      = {1998},
+  doi       = {10.1007/b98904},
 }
 
 @article{simo_taylor1985,
@@ -56,6 +44,7 @@
   number  = {1},
   pages   = {101--118},
   year    = {1985},
+  doi     = {10.1016/0045-7825(85)90070-2},
 }
 
 @book{desouzaneto,
@@ -64,6 +53,7 @@
   publisher = {Wiley},
   address   = {Chichester},
   year      = {2008},
+  doi       = {10.1002/9780470694626},
 }
 
 @book{strang_fix,
@@ -74,21 +64,16 @@
   year      = {1973},
 }
 
-@book{hughes_fem,
-  author    = {Hughes, T. J. R.},
-  title     = {The Finite Element Method: Linear Static and Dynamic Finite Element Analysis},
-  publisher = {Dover},
-  address   = {Mineola, NY},
-  year      = {2000},
-}
-
 @book{thomee,
   author    = {Thom{\'e}e, V.},
   title     = {Galerkin Finite Element Methods for Parabolic Problems},
   edition   = {2nd},
+  series    = {Springer Series in Computational Mathematics},
+  volume    = {25},
   publisher = {Springer},
   address   = {Berlin},
   year      = {2006},
+  doi       = {10.1007/3-540-33122-0},
 }
 
 @article{dunavant1985,
@@ -99,25 +84,16 @@
   number  = {6},
   pages   = {1129--1148},
   year    = {1985},
+  doi     = {10.1002/nme.1620210612},
 }
 
 @book{crank,
   author    = {Crank, J.},
   title     = {The Mathematics of Diffusion},
   edition   = {2nd},
-  publisher = {Oxford University Press},
+  publisher = {Clarendon Press},
   address   = {Oxford},
   year      = {1975},
-}
-
-@book{incropera,
-  author    = {Incropera, F. P. and DeWitt, D. P. and Bergman, T. L. and Lavine, A. S.},
-  title     = {Fundamentals of Heat and Mass Transfer},
-  edition   = {6th},
-  publisher = {Wiley},
-  address   = {Hoboken, NJ},
-  year      = {2007},
-  note      = {CHECK edition used for Table 1.1},
 }
 
 @book{ludwik1909,
@@ -126,6 +102,7 @@
   publisher = {Springer},
   address   = {Berlin},
   year      = {1909},
+  doi       = {10.1007/978-3-662-40293-1},
 }
 
 @article{ledbetter_naimon1974,
@@ -140,28 +117,42 @@
 }
 
 @book{janaf,
-  author    = {Chase, M. W.},
+  editor    = {Chase, Jr., M. W.},
   title     = {{NIST-JANAF} Thermochemical Tables},
   edition   = {4th},
   series    = {Journal of Physical and Chemical Reference Data, Monograph 9},
-  publisher = {American Institute of Physics},
+  publisher = {American Chemical Society and American Institute of Physics},
   year      = {1998},
   note      = {Table C-002, graphite C1(ref), \url{https://janaf.nist.gov/tables/C-002.txt}},
 }
 
 @misc{sgl_r4550,
   author       = {{SGL Carbon}},
-  title        = {{SIGRAFINE} {R4550} technical data sheet},
-  howpublished = {TDS R4550.00, typical average values},
+  title        = {{SIGRAFINE} {R4550}: material data},
+  howpublished = {Technical data sheet TDS R4550.00, 04 2019,
+                  \url{https://www.sglgroup.com/data/pdf/SGL-Datasheet-SIGRAFINE-R4550-EN.pdf}},
   year         = {2019},
 }
 
-@misc{cda_c10100,
-  author       = {{Copper Development Association}},
-  title        = {Alloy {C10100} (oxygen-free electronic copper) data sheet},
-  howpublished = {Values as reproduced by distributors; yield of temper OS050 from makeitfrom.com},
-  note         = {Secondary sources, see cases/beam\_block/README.md},
-  year         = {undated},
+@techreport{fluka2005,
+  author      = {Ferrari, A. and Sala, P. R. and Fass{\`o}, A. and Ranft, J.},
+  title       = {{FLUKA}: A multi-particle transport code (program version 2005)},
+  institution = {CERN},
+  address     = {Geneva},
+  number      = {CERN-2005-010},
+  year        = {2005},
+  doi         = {10.5170/CERN-2005-010},
+}
+
+@article{geant4,
+  author  = {Agostinelli, S. and others},
+  title   = {{Geant4}---a simulation toolkit},
+  journal = {Nuclear Instruments and Methods in Physics Research Section A},
+  volume  = {506},
+  number  = {3},
+  pages   = {250--303},
+  year    = {2003},
+  doi     = {10.1016/S0168-9002(03)01368-8},
 }
 
 @article{gmsh,
@@ -172,29 +163,5 @@
   number  = {11},
   pages   = {1309--1331},
   year    = {2009},
-}
-
-@misc{eigen,
-  author       = {Guennebaud, G. and Jacob, B. and others},
-  title        = {Eigen v3},
-  howpublished = {\url{https://eigen.tuxfamily.org}},
-  year         = {2010},
-}
-
-@techreport{fluka2005,
-  author      = {Ferrari, A. and Sala, P. R. and Fass{\`o}, A. and Ranft, J.},
-  title       = {{FLUKA}: a multi-particle transport code},
-  institution = {CERN},
-  number      = {CERN-2005-010},
-  year        = {2005},
-}
-
-@article{geant4,
-  author  = {Agostinelli, S. and others},
-  title   = {{GEANT4}---a simulation toolkit},
-  journal = {Nuclear Instruments and Methods in Physics Research A},
-  volume  = {506},
-  number  = {3},
-  pages   = {250--303},
-  year    = {2003},
+  doi     = {10.1002/nme.2579},
 }

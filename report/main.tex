@@ -26,7 +26,7 @@
 \newcommand{\refrow}[1]{\textsf{#1}}
 
 \title{\tmfem: a validated two-dimensional thermo-mechanical\\finite-element solver written from scratch}
-\author{TODO: name, affiliation}
+\author{Mohamed Ali Kabiri\\Al Akhawayn University in Ifrane, Morocco}
 \date{\today}
 
 \begin{document}
@@ -62,7 +62,7 @@ has a reference value and a tolerance in a reference table. Most rows were writt
 the rows for 2D heat with source and convection and for the phase-4 convergence orders (P4-f to P4-h)
 were written in phase 4 together with their tests, as were the plane-strain targets of P4-a and P4-b. Every
 convergence claim is backed by an observed order measured on at least three refinements. The source
-material for the benchmarks (lab exercises by M.~R.~Kabiri, ENSAM Mekn\`es~\cite{kabiri_labs})
+material for the benchmarks (unpublished lab exercises by M.~R.~Kabiri, ENSAM Mekn\`es, used with permission)
 contains several wrong values. Each reference was therefore recomputed by a script, and the
 disagreements are listed in \cref{sec:corrections}. A test was never tuned to match a reference. When a
 result missed its tolerance, the cause was found, and any change to the test plan was approved and is
@@ -151,7 +151,7 @@ does not feed back into the temperature, and inertia is neglected.
 \subsection{Software and verification set-up}
 The code is about forty small C++17 translation units in \texttt{mesh}, \texttt{fem},
 \texttt{thermal}, \texttt{mechanics}, \texttt{coupling} and \texttt{io}. It depends only on the standard
-library, Eigen~3~\cite{eigen} (sparse Cholesky $LDL^T$ for symmetric systems, sparse LU otherwise),
+library, Eigen~3 (sparse Cholesky $LDL^T$ for symmetric systems, sparse LU otherwise),
 nlohmann/json for case files and Catch2 for tests. Cases are small JSON files. Each validation test
 writes the value it asserts to a CSV file next to its reference and tolerance. The README results table
 and \cref{tab:results} are generated from these files. Every other computed number in this report is
@@ -209,7 +209,7 @@ and \NPmSpaceLumped{} with lumped capacity.
 (\refrow{P2-b}) to round-off.
 
 \emph{Kirsch plate} (\refrow{P2-c}--\refrow{P2-f}). A circular hole of radius $a$ in an infinite plate
-under remote stress $S = \SI{140}{MPa}$ along $y$~\cite{kirsch1898,timoshenko_goodier} is modelled as
+under remote stress $S = \SI{140}{MPa}$ along $y$ (Kirsch's solution, as given in~\cite{timoshenko_goodier}) is modelled as
 the quarter $[0, 5a]^2$ with symmetry conditions. The exact Kirsch tractions are applied on the outer
 edges, so the finite model represents the infinite plate exactly and the FE solution converges to the
 analytic field. On the finest T6 mesh the stress concentration factor is \NKtTsix{} (T3: \NKtTthree{}),
@@ -353,7 +353,7 @@ cross-section is solved in plane strain on T6 meshes refined to $s/10$ near the 
 $s = 0.5$, 1, 2 and \SI{4}{mm}. A long free block is really in generalised plane strain. The
 difference is a uniform $\sigma_{zz}$ shift of \NDemoCuHalfgps{} to \NDemoCuFourgps{} of the peak
 $\lvert\sigma_{zz}\rvert$ for copper (graphite: up to \NDemoGrFourgps{}), and twice that fraction in the
-centre von Mises stress. The materials are annealed OFE copper~\cite{cda_c10100,ledbetter_naimon1974}
+centre von Mises stress. The materials are annealed OFE copper~\cite{ledbetter_naimon1974}
 and isotropic graphite (SGL R4550~\cite{sgl_r4550}, with $\nu = 0.2$ and $c$ from NIST-JANAF~\cite{janaf}
 assumed, because the data sheet does not give them). Every property and its source is recorded in
 \texttt{cases/beam\_block/README.md}.
@@ -426,7 +426,7 @@ assembly, temperature-dependent properties with thermoplasticity for the demo, a
 strain.
 
 \paragraph{Credits.} Benchmark cases adapted from M.~R.~Kabiri, ENSAM Mekn\`es lab
-materials~\cite{kabiri_labs}, with permission. Analytical solutions from the cited textbooks.
+materials (unpublished), with permission. Analytical solutions from the cited textbooks.
 
 \bibliographystyle{unsrtnat}
 \bibliography{refs}

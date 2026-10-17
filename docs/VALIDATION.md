@@ -9,7 +9,7 @@ Numbers labelled *historical* come from a run before a disclosed change and are 
 
 Notes on phase 1 (derivations in [learning/phase1.md](learning/phase1.md)):
 - **P1-k:** the original target "below 0.01 K" is physically infeasible for the 26 to 74 °C test
-  signal. It holds only for swings under 19 K. With the user's approval it was replaced by the
+  signal. It holds only for swings under 19 K. After review it was replaced by the
   quasi-steady bound `(L/k)/R_tot · max|T_sa − T_in| = 0.0255 K` at 5%. The derivation is in
   [learning/phase1.md](learning/phase1.md) section 9.
 - **P1-j:** 0.033 K at the prescribed dt = 300 s (0.026 K at dt = 150 s) contains two parts:
@@ -43,7 +43,7 @@ Notes on phase 2 (derivations in [learning/phase2.md](learning/phase2.md)):
   - So level 0 is pre-asymptotic. The error-norm quadrature was checked and is not the cause.
   - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.20
     (plane strain), still outside the tolerance. The pass depends on leaving level 0 out of the fit.
-  - With the user's approval, level 4 was added and the order is now fitted on levels 1 to 4, for T3
+  - After review, level 4 was added and the order is now fitted on levels 1 to 4, for T3
     and T6 alike. Level 0 is still computed and printed by the test.
 - **P2-c..e on level 3** (historical, phase-2 commit 182f3da, before level 4 was added and before the meshes were
   generated at build time): Kt = 2.99876 (−0.041%), and the
@@ -79,7 +79,7 @@ Notes on phase 3 (derivations in [learning/phase3.md](learning/phase3.md)):
   - With a consistent tangent, Newton went from 1.9e-6 to 1.4e-10 to the 7e-14 round-off floor once
     the plastic set settled. That left too few iterates for the pre-fixed rate criterion: no qualifying
     triple.
-  - With the user's approval, the rate is asserted on the FE bar, where the active set is fixed by
+  - After review, the rate is asserted on the FE bar, where the active set is fixed by
     construction. The criterion is unchanged. The hole-plate sequence is still printed and plotted.
   - The bar is uniform, so this rate checks the tangent along the loading path: it amounts to a scalar
     Newton on σ_yy(ε_yy). It still fails with a continuum tangent.

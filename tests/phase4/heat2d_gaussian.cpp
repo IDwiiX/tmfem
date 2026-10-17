@@ -25,7 +25,7 @@
 // Quarter square [0, L]^2, L = 12 mm = 6 s_end, insulated (symmetry on x = 0, y = 0; the outer edges see
 // T/T0 < 1e-7). Copper-like k = 400 W/(m K), rho c = 3.44e6 J/(m^3 K); s0 = 1 mm; s_end = 2 s0; Crank-Nicolson.
 // Variance = int r^2 T dA / (2 int T dA), per coordinate. P4-e runs on the finest level (4), like P4-c/d.
-// Disclosed change, approved by the user: the first run used level 2 and gave a T3 variance error of
+// Disclosed change, approved after review: the first run used level 2 and gave a T3 variance error of
 // 0.55% at the first check. The cause is the nodal interpolation of the initial Gaussian, which shifts the
 // discrete variance by a constant O(h^2) amount (16.9, 4.38, 1.11, 0.28, 0.07% of s0^2 on levels 0-4); the
 // growth 2 a t itself was exact. T6 was 3e-8 at level 2.

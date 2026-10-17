@@ -21,7 +21,7 @@
 // The order is the least-squares slope over levels 1-4. Disclosed change: the first run used levels
 // 0-3 only and gave a T6 L2 order of 3.25-3.27, with pairwise orders 3.53, 3.17, 3.12 falling toward 3,
 // so level 0 is pre-asymptotic (error-norm quadrature was checked; T6 energy and all T3 orders were
-// within tolerance). With the user's approval, level 4 was added and level 0 dropped from the fit, for
+// within tolerance). After review, level 4 was added and level 0 dropped from the fit, for
 // T3 and T6 alike. Level 0 is still computed and printed.
 
 using namespace tmfem;

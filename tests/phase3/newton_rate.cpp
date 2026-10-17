@@ -20,7 +20,7 @@
 // all three iterates and r+ >= 1e-11 F_ref (above round-off). At least one triple must qualify, and the last
 // qualifying triple must give p >= 1.8.
 //
-// Set-up change, approved by the user after the first run (docs/learning/phase3.md section 15): the plan
+// Set-up change, approved after review of the first run (docs/learning/phase3.md section 15): the plan
 // asserted this on the Kirsch plate (T6 level 2, plane strain, S = 100 -> 140 MPa in one step). There Newton
 // converged so fast once the plastic set settled (93 -> 99 -> 100 points) that only two residuals stayed above
 // round-off (1.9e-6, 1.4e-10, then the 7e-14 floor), so no triple qualified. The assertion now uses the

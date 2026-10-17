@@ -8,7 +8,7 @@ Contents:
 - 1-5: 2D transient heat
 - 6-9: thermal strain and the thermal load vector
 - 10-11: analytic solutions and the demo model
-- 12-16: algorithm, validation cases, what went wrong, limitations and interview questions
+- 12-15: algorithm, validation cases, what went wrong and limitations
 
 Notation: alpha is the coefficient of thermal expansion (1/K). The thermal diffusivity is written
 `a = k/(rho c)`, which SPEC calls alpha_th. Phase 3 used alpha for the hardening variable; nothing here
@@ -473,16 +473,16 @@ The final values go in `cases/beam_block/README.md` and in the case JSON, with t
 
 1. **The demo was first set up as plane stress.** The draft hit a 10 mm plate face-on. Plane stress needs
    t_z ≪ s, and here s = 0.5 to 4 mm. This was caught on review of the derivation, before any demo code. The
-   fix is a long block in plane strain, which the user approved, with the generalised plane strain shift
+   fix is a long block in plane strain, which was approved after review, with the generalised plane strain shift
    quantified (section 11).
 2. **σ_zz in the case output ignored the thermal term.** The draft had `sigma_zz_thermal` but the output used
    the Phase 2 `ν(σ_xx + σ_yy)`. Found by reading the code. Test written first: it failed with relative errors
    0.70 (held bar) and 1.00 (free body), then passed at 1e-13.
 3. **P4-e at level 2 missed 0.5% by 0.05%.** The variance offset was constant in time and fell 4× per level,
    so it is the O(h²) interpolation of the initial Gaussian, not the dynamics. Moved to the finest level
-   with the user's approval, and disclosed in the test.
+   after review, and disclosed in the test.
 4. **P4-f (iii) missed 1e-10 by up to 6e-6.** The error grew with k at fixed λ dt, and vanished in excess
-   temperature. So the cause is floating point (section 4). Re-posed with the user's approval, and disclosed.
+   temperature. So the cause is floating point (section 4). Re-posed after review, and disclosed.
 5. **A unit-test tolerance was scaled to the answer (hL) rather than to the magnitude of the cancelling
    terms (Σ|A_ij|).** Round-off in `1ᵀA1` is set by entries of size k, so the tolerance now scales with
    them.
@@ -513,24 +513,3 @@ The final values go in `cases/beam_block/README.md` and in the case JSON, with t
 - Consistent capacity only (T6 corners make row-sum lumping singular). There is no discrete maximum principle
   for sharp data, though none was violated in the demo.
 - A Gaussian stand-in for the energy deposition. Real maps come from FLUKA or Geant4.
-
-## 16. Five interview questions
-
-1. *Why is a uniformly heated, unconstrained body stress-free in your code to 1e-14, even on curved T6?*
-   The exact displacement `α_eff ΔT x` is linear, so it lies in the element space. K u* and f_th are then the
-   same integrand, `β ΔT adj(J)ᵀ ∂N/∂ξ`. That is a polynomial in ξ even on a curved cell, because adj(J) is
-   linear, and both quadrature rules integrate it exactly.
-2. *Why is β different in plane stress and plane strain, and what does that do to σ_zz?* Plane stress lets
-   the body expand freely in z, so only the in-plane constraint matters: β = Eα/(1−ν). Plane strain prevents
-   the z expansion. That adds the Poisson squeeze, giving β = Eα/(1−2ν), and a stress
-   `σ_zz = ν(σ_xx + σ_yy) − EαΔT` that must enter von Mises.
-3. *How did you know the P4-f (iii) failure was not a bug?* Its exact answer does not depend on k or T_inf.
-   The error grew in proportion to k at fixed λ dt, and it vanished when the problem was posed in excess
-   temperature. A discretisation bug would not scale like that. Cancellation and conditioning do.
-4. *Why does graphite get hotter than copper yet survive?* ΔT ∝ 1/(ρc), and graphite's ρc is 2.65 times
-   lower. Stress ∝ EαΔT/(1−ν): graphite's Eα is about 40 times lower than copper's. The figure of merit
-   Eα/((1−ν)ρc) is 20 times lower. Its strengths are of the same order as copper's yield.
-5. *What would change with a real FLUKA map?* The source term becomes interpolated data, not a Gaussian. The
-   deposit varies along z, so a 2D section is valid only where the gradient along z is weak; otherwise the
-   model needs 3D or generalised plane strain per slice. The peak ΔT would be higher, so the properties would
-   need to depend on temperature.

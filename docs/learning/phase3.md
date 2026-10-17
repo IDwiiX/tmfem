@@ -10,8 +10,6 @@ Contents:
 - 14: validation cases
 - 15: what went wrong
 - 16: limitations
-- 17: interview questions
-- Model answers: at the very end
 
 ## 0. What this phase computes
 
@@ -556,8 +554,8 @@ Code: `src/mechanics/neuber.cpp`, test `tests/phase3/kirsch_plastic.cpp`.
      - The global finite-difference tangent check passed.
      - The ratios r₊/r fell from 0.047 to 0.026, 0.0054 and 7.7e-5. That is superlinear; a continuum
        tangent would make them level off.
-   - Changing the measurement after seeing a result is the user's call, so I asked. The user chose to
-     assert on the uniform FE bar: every point is plastic from the first correction, so the active set is
+   - Changing the measurement after seeing a result needs an explicit decision, so it was reviewed. The
+     choice was to assert on the uniform FE bar: every point is plastic from the first correction, so the active set is
      fixed by construction.
    - Result: p = 2.12 (plane strain) and 2.62 (plane stress). The Kirsch sequences are still printed and
      plotted as a diagnostic.
@@ -617,88 +615,3 @@ Code: `src/mechanics/neuber.cpp`, test `tests/phase3/kirsch_plastic.cpp`.
   material scatter.
 - **Neuber** is applied only where its uniaxial assumption holds (plane stress). In plane strain it is
   printed with a "not applicable" label.
-
-## 17. Five interview questions
-
-1. Why is radial return exact for J2 plasticity with isotropic hardening, and what does "exact" mean
-   here? When would you need more than one scalar equation?
-2. Derive the extra term in the consistent tangent compared with the continuum tangent. What happens to
-   Newton if you use the continuum tangent?
-3. Your plane-stress implementation wraps a 3D model in a local iteration. Why is the condensed tangent
-   `C_ab − C_az C_zb / C_zz` exact, and what would break if the local iteration were stopped early?
-4. The Ludwik fit gives σ_y0 = 309 ± 5 MPa from the covariance but ±100 MPa from the jackknife. Which
-   do you believe, and what experiment would settle it?
-5. At the hole edge in plane stress, FE gives ε_yy = 0.00236 and Neuber gives 0.00265. Why does Neuber
-   overestimate, and why does it not apply in plane strain?
-
----
-
-## Model answers
-
-Try the questions first. Then expand.
-
-<details>
-<summary>1. Radial return</summary>
-
-- The backward-Euler equations make s_{n+1} parallel to s^tr: both are a positive multiple of n_{n+1}
-  (section 5).
-- So the direction is known before Δγ is, and the whole return reduces to one scalar equation
-  `q^tr − 3GΔγ = σ_y(α_n + Δγ)`.
-- "Exact" means the discrete backward-Euler equations are solved exactly (to round-off). It does not
-  mean the continuum path is reproduced exactly; that is only true for proportional loading.
-- More equations are needed for:
-  - kinematic hardening with a nonlinear (Armstrong-Frederick) back stress, where the direction
-    depends on the back stress
-  - pressure-dependent yield (Drucker-Prager apex)
-  - plane stress done directly, without the 3D wrapper
-</details>
-
-<details>
-<summary>2. Consistent vs continuum tangent</summary>
-
-- Differentiating `σ = σ^tr − 2G√(3/2)Δγ n` gives two terms: dΔγ (present in the continuum tangent)
-  and Δγ dn.
-- dn exists because the trial direction rotates when ε changes:
-  `dn = (2G/‖s^tr‖)(𝕀_dev − n⊗n):dε`.
-- The extra term is `−(6G²Δγ/q^tr)(𝕀_dev − n⊗n)`. It softens the deviatoric directions orthogonal
-  to n by the factor θ = q_{n+1}/q^tr.
-- With the continuum tangent, K_T is not the derivative of R. Newton still converges for small steps,
-  but only linearly: the ratio r₊/r tends to a constant instead of to 0.
-</details>
-
-<details>
-<summary>3. Plane-stress condensation</summary>
-
-- At the converged local state σ_zz(ε_in, ε_zz) = 0. The implicit function theorem gives
-  `dε_zz/dε_in = −C_zβ/C_zz`, so dσ_in/dε_in is the condensed matrix.
-- It is exact only if:
-  - C is the exact derivative of the return (consistent), and
-  - the local equation is solved: σ_zz is zero to round-off.
-- If the local iteration stops early, σ_zz ≠ 0, the state is not plane stress, and the condensed
-  matrix is no longer the derivative of what the element sees. Global convergence degrades.
-</details>
-
-<details>
-<summary>4. Covariance vs jackknife</summary>
-
-- The covariance assumes the model is right, the errors are independent, and the problem is close to
-  linear near the optimum.
-- The jackknife shows that one point, the yield point, carries σ_y0: removing it lets σ_y0 slide to
-  193 MPa while K and m compensate.
-- So σ_y0 is not identified by the rest of the data. The honest answer: σ_y0 ≈ 309 to 311 MPa *given*
-  the measured yield point, with the knee shape poorly constrained.
-- A tensile test with dense sampling between ε = 0.15% and 1% would settle it.
-</details>
-
-<details>
-<summary>5. Neuber</summary>
-
-- Neuber assumes the local "strain energy" product σε equals the elastic one. That ignores the load
-  redistribution through the plastic zone: the surrounding elastic material constrains the root.
-- It is usually found to overestimate the notch strain. Here the FE edge strain is 11% lower.
-- The FE value lies between the linear rule (elastic strain, 0.00203) and Neuber (0.00265). That
-  ordering is common for notches, but this project shows it for one case, not in general.
-- In plane strain σ_zz ≈ 0.3 to 0.5 σ_yy at the edge, so the root is biaxial. The uniaxial curve
-  σ(ε) is then the wrong constitutive relation. Generalised Neuber (Hoffmann-Seeger, Glinka energy) is
-  needed.
-</details>

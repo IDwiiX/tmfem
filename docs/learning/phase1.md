@@ -11,8 +11,6 @@ Contents:
 - 12: validation cases
 - 13: what went wrong
 - 14: limitations
-- 15: interview questions
-- Model answers: at the very end
 
 ## 0. What this phase computes
 
@@ -362,7 +360,7 @@ confidence beyond a single passing number. What did go wrong:
 1. **An infeasible reference value (P1-k).**
    - "Below 0.01 K" was found before any code, by a resistance estimate:
      `(L/k)/R_tot * 48 K = 0.0255 K`.
-   - It was raised as a question and replaced only with the user's explicit approval. The test now
+   - It was raised as a question and replaced only after explicit review. The test now
      checks the analytic bound. The FE gives 0.02558 K vs 0.02553 K.
 2. **Two unit-test tolerances below what floating point allows.**
    - `erfinv` at z = 3.5: the inverse amplifies rounding by `exp(z^2) ~ 2e5`.
@@ -405,106 +403,3 @@ confidence beyond a single passing number. What did go wrong:
 - **The P1-m eigenmode trick needs a uniform mesh** (the sine is an exact eigenvector only there).
   The spatial order on graded meshes is not measured separately; P1-h and P1-b show that graded
   meshes converge.
-
-## 15. Five interview questions
-
-1. Where does the convective term `h (T - T_inf)` end up in the discrete system, and why is part of
-   it in the matrix and part in the load vector? What changes in 2D?
-2. CN is second order and BE first order. Why does the steel-plate case use BE? Put a number on it.
-3. The thin-film test checks that the dose is conserved to 1e-10. Why can a discrete method
-   conserve it that well, and what would break it?
-4. How did you measure the temporal order of convergence without the spatial error contaminating it?
-5. The reference document said the through-thickness difference is "below 0.01 K", and you changed
-   that target. Why is that not tuning a test to pass?
-
----
-
-## Model answers
-
-Try the questions first. Then expand.
-
-<details>
-<summary>1. The convective term</summary>
-
-- Integrating by parts leaves the boundary term `w k dT/dn`. The Robin condition sets
-  `k dT/dn = -h (T - T_inf)`.
-- The part `-h w T` contains the unknown, so it moves to the left. With `w = N_i` and `T = sum N_j T_j`,
-  it becomes the matrix `H_ij = h N_i N_j` evaluated at the boundary point, which in 1D is just h on the
-  boundary node's diagonal.
-- The part `+h w T_inf(t)` is known, so it goes into F(t), and it is time-dependent.
-- Keeping `h T` implicit, inside `A = K + H`, preserves unconditional stability and symmetry.
-- In 2D the boundary is a set of edges, so H becomes `int_edge h N_i N_j ds` (a small mass-like matrix on
-  each boundary edge) and F gets `int_edge h T_inf N_i ds`.
-- Code: `src/thermal/heat1d.cpp:build_operators`, the `ConvectiveBC` branches.
-
-</details>
-
-<details>
-<summary>2. Why BE for the steel plate</summary>
-
-- The amplification factor is `G = (1 - (1 - theta) lambda dt)/(1 + theta lambda dt)`.
-- The through-thickness conduction mode has `lambda ~ pi^2 k/(rho c L^2) ~ 7 1/s`. With dt = 300 s,
-  `lambda dt ~ 2000`.
-- CN: `G ~ -0.999`. Any disturbance in that mode flips sign every step and takes thousands of steps
-  to decay: ringing.
-- BE: `G = 1/(1 + 2000) ~ 5e-4`, so it is damped at once (L-stable).
-- The physics that matters is the slow lumped response (tau = 550 s) to a daily forcing, which BE
-  resolves well at dt = 300 s. Halving dt changes the answer by only 0.0068 K.
-- Second order only helps once the step resolves every active time scale. Here dt is about 200 times
-  the diffusion time.
-
-</details>
-
-<details>
-<summary>3. Exact discrete dose conservation</summary>
-
-- With zero-flux ends there is no H, no F and no Dirichlet row.
-- K has zero row sums, because a constant field has zero gradient. K is symmetric, so `1^T K = 0`.
-- Multiply the theta step by `1^T`: the K terms vanish, leaving `1^T M T^{n+1} = 1^T M T^n` exactly,
-  for any dt, theta or mesh.
-- What remains is the linear solver's residual: LDLT is backward stable, so about 1e-16 per step.
-  The test measured 3.7e-12 after 823 steps.
-- What would break it:
-  - a Dirichlet end (it injects or removes reaction flux)
-  - a non-symmetric or wrongly assembled K
-  - an iterative solver with a loose tolerance
-  - measuring the dose with a different "M" than the one used in the step
-- It does not test accuracy: the conserved dose is the initial FE interpolant's dose, which differs
-  from the analytic M by 8e-5.
-
-</details>
-
-<details>
-<summary>4. Isolating the time error</summary>
-
-- On a uniform mesh with zero Dirichlet ends, the nodal sine vector is an exact eigenvector of both K
-  and M (section 10).
-- So the semi-discrete ODE has the exact solution `exp(-lambda_h t) v`, with `lambda_h` computed as the
-  Rayleigh quotient.
-- Compare the fully discrete result to that, not to the PDE solution: the spatial error cancels
-  exactly, and what is left is pure time error, `(G^n - exp(-lambda_h t)) v`.
-- Four step sizes gave slopes 0.983 (BE) and 2.000 (CN).
-- For the spatial order the roles reverse: CN at dt = 1e-4. For each mesh the test computes the time
-  part exactly and asserts it is below 1% of the spatial L2 error. That gave 1.996 (consistent) and
-  2.009 (lumped).
-- Code: `tests/phase1/heat1d_convergence.cpp` (`time_error`, and the `e_time` check at line 101).
-
-</details>
-
-<details>
-<summary>5. Changing the P1-k target</summary>
-
-- Tuning means changing a tolerance, a mesh or a parameter after seeing a disagreement, so that
-  the test passes.
-- Here the disagreement was found before any code existed, by an independent physics estimate:
-  - In quasi-steady state the same flux crosses three resistances in series, `1/h_e`, `L/k` and
-    `1/h_i`, so `T(0) - T(L) = (L/k)/R_tot (T_sa - T_in) = 5.32e-4 * 48 K = 0.0255 K`.
-  - "Below 0.01 K" holds only if the swing `|T_sa - T_in|` stays below 19 K, and the agreed
-    signal swings 48 K.
-- The new target is a closed-form value with its derivation in this document.
-- The change was proposed as a question, approved explicitly, and is visible in git history with
-  the old value kept in the "Source says" column.
-- The FE result (0.02558 K) was then compared with it, at the 5% tolerance that was fixed beforehand.
-- The alternative, picking a weaker signal so that 0.01 K passes, would have been tuning.
-
-</details>

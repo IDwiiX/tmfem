@@ -24,7 +24,7 @@
 //  (iii) uniform plate cooled through its faces only: T^n - T_inf = G^n (T^0 - T_inf),
 //        G = (1 - (1 - theta) lambda dt)/(1 + theta lambda dt), lambda = 2 h_f/(rho c t_z).
 //        Posed in excess temperature (T_inf = 0, T0 = 100 K) with k = 0.4 W/(m K). G^n depends on neither.
-//        Disclosed change, approved by the user: the first run used T_inf = 300 K, k = 400 W/(m K) and gave
+//        Disclosed change, approved after review: the first run used T_inf = 300 K, k = 400 W/(m K) and gave
 //        1e-8 to 6e-6. Both causes are floating point, not discretisation: subtracting 300 K from T to get a
 //        0.03 K excess loses about 4 digits, and k dt/(rho c h^2) = 5.6e4 makes conduction dominate a solve in
 //        which it plays no role (K 1 = 0); the error grew in proportion to k. See docs/learning/phase4.md section 4.

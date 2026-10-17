@@ -21,5 +21,6 @@ jobs:
       - name: Build
         run: cmake --build build -j
 
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
+      # The slow-labelled tests (level-4 elastoplastic hole plate, about 11 min) run in full-suite.yml.
+      - name: Test (without slow tests)
+        run: ctest --test-dir build --output-on-failure -LE slow

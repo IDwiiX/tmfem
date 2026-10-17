@@ -1,0 +1,25 @@
+name: full-suite
+
+# Every test, including the slow-labelled ones that ci.yml skips. Run it by hand from the Actions tab.
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTMFEM_WARNINGS_AS_ERRORS=ON
+
+      - name: Build
+        run: cmake --build build -j
+
+      - name: Test (full suite)
+        run: ctest --test-dir build --output-on-failure

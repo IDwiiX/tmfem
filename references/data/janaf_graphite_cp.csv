@@ -1,0 +1,19 @@
+# Graphite C1(ref), NIST-JANAF Thermochemical Tables, 4th ed. (Chase 1998), table C-002, janaf.nist.gov/tables/C-002.txt
+# Columns copied verbatim: T [K], Cp [J/(mol K)], H - H(298.15 K) [kJ/mol]. Molar mass 12.011 g/mol.
+# Used only by scripts/report_numbers.py for the constant-property check of demo D4 (not by the solver).
+T_K,Cp_J_molK,H_minus_H298_kJ_mol
+250,6.816,-0.369
+298.15,8.517,0.
+300,8.581,0.016
+350,10.241,0.487
+400,11.817,1.039
+450,13.289,1.667
+500,14.623,2.365
+600,16.844,3.943
+700,18.537,5.716
+800,19.827,7.637
+900,20.824,9.672
+1000,21.610,11.795
+1100,22.244,13.989
+1200,22.766,16.240
+1300,23.204,18.539

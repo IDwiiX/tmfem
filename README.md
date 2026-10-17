@@ -1,28 +1,29 @@
 # tmfem
 
-A from-scratch C++17 finite-element solver for 2D transient heat conduction, linear elasticity,
-von Mises elastoplasticity and one-way thermo-mechanical coupling. Every capability is checked by a
-validation test against an analytical solution or a reference result. It is a learning and validation
-project; it does not replace ANSYS or Abaqus.
+A from-scratch C++17 finite-element solver for 1D and 2D transient heat conduction and diffusion, 2D linear
+elasticity (T3/T6, plane stress and plane strain), small-strain von Mises elastoplasticity with isotropic
+hardening, and one-way thermo-mechanical coupling. No FEM library is used: only the standard library, Eigen,
+Catch2, nlohmann/json, and Gmsh as an external mesh generator. Every capability is tied to a Catch2
+validation test against an analytical solution, a recomputed textbook result or a reference simulation, with
+an explicit tolerance, and every convergence claim is an observed order on four mesh levels. A
+beam-heated block demo (not a validation) shows the thermal-stress step of the beam-intercepting-device
+workflow. tmfem is a learning and validation project. It does not replace ANSYS or Abaqus.
 
-**Status:** phases 1 to 4 of 5 validated:
-- 1D transient heat conduction and diffusion
-- 2D linear elasticity with T3/T6 triangles, plane stress and plane strain
-- small-strain von Mises plasticity with isotropic hardening (tabulated and Ludwik): radial return,
-  consistent tangent, global Newton with load stepping, plane strain and plane stress
-- 2D transient heat (T3/T6, volumetric source, convection, face cooling) and one-way thermal strain in
-  linear elasticity (plane stress and plane strain), with a beam-heated block demo
+**Status:** phases 1 to 5 done. Technical report: [report/main.tex](report/main.tex) (build it with the commands
+below). Per-phase notes and disclosed changes: [docs/VALIDATION.md](docs/VALIDATION.md). Derivations:
+[docs/learning/](docs/learning/).
 
 ## Results
 
 Every number below is written by the test that asserts it, into `results/validation/`, and the
-table is regenerated from those files by `python3 scripts/build_results_table.py` after `ctest`.
-Reference IDs and tolerances are defined in [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md).
-The error column is relative (%) except where the tolerance is absolute or the reference is zero.
-Report-only rows are compared with a value that is not a target, such as an estimate or the source's
-parameters. Their difference is shown in parentheses, and "n/a" marks rows with no comparison value.
-
-### Phases 1 to 4
+table is regenerated from those files by `python3 scripts/build_results_table.py` after `ctest`. The script
+fails if any reference row of [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md) has no result, unless it is
+listed as skipped with its reason (only P1-l). The error column is relative (%) except where the tolerance is
+absolute or the reference is zero. Report-only rows are compared with a value that is not a target, such as an
+estimate or the source's parameters. Their difference is shown in parentheses, and "n/a" marks rows with no
+comparison value. Every computed number quoted in the report is listed with its source in [docs/PROVENANCE.md](docs/PROVENANCE.md);
+the computed numbers in the prose below are a subset of those. Inputs and reference values come from the case
+files and docs/REFERENCE_VALUES.md.
 
 <!-- results:begin -->
 | ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |
@@ -47,6 +48,7 @@ parameters. Their difference is shown in parentheses, and "n/a" marks rows with 
 | P1-i | Steel plate parameters | time constant [s] | 549.5 | 549.5 | +0 | +/- 0.05 s (last quoted digit) | `P1-i steel plate Biot number and time constant` |
 | P1-j | Steel plate, FE vs lumped ODE | max abs inner face FE - lumped [K] | 0 | 0.0330652 | +0.0331 | 0.05 K | `P1-j steel plate 1D FE vs lumped ODE` |
 | P1-k | Steel plate, through-thickness difference | max through-thickness difference [K] | 0.0255348 | 0.0255832 | +0.19% | 5% | `P1-k steel plate through-thickness difference` |
+| P1-l | Steel plate, real ttab vs ANSYS | skipped: references/data/ttab.csv and the ANSYS curve are not provided | n/a | n/a | n/a | report only | `P1-l steel plate vs ANSYS inner face` |
 | P1-m | 1D heat convergence orders | forced time order BE consistent mass | 1 | 0.998348 | -0.00165 | +/- 0.15 | `P1-m temporal order with time-dependent forcing, backward Euler` |
 | P1-m | 1D heat convergence orders | forced time order BE lumped mass | 1 | 0.997965 | -0.00204 | +/- 0.15 | `P1-m temporal order with time-dependent forcing, backward Euler` |
 | P1-m | 1D heat convergence orders | forced time order CN consistent mass | 2 | 2.0002 | +0.0002 | +/- 0.15 | `P1-m temporal order with time-dependent forcing, Crank-Nicolson` |
@@ -144,167 +146,61 @@ parameters. Their difference is shown in parentheses, and "n/a" marks rows with 
 | P4-h | 2D Gaussian heat convergence orders | T6 L2 order (levels 1-4) | 3 | 3.07825 | +0.0782 | +/- 0.15 | `P4-h Gaussian spreading convergence` |
 <!-- results:end -->
 
-Notes:
-- **P1-k:** the original target "below 0.01 K" is physically infeasible for the 26 to 74 °C test
-  signal. It holds only for swings under 19 K. With the user's approval it was replaced by the
-  quasi-steady bound `(L/k)/R_tot · max|T_sa − T_in| = 0.0255 K` at 5%. The derivation is in
-  [docs/learning/phase1.md](docs/learning/phase1.md) section 9.
-- **P1-j:** 0.033 K at the prescribed dt = 300 s (0.026 K at dt = 150 s) contains two parts:
-  - backward-Euler time error, visible as an hourly sawtooth from the hourly-sampled input
-  - the physical difference between the inner face and the plate mean, of order the Biot number
-- **P1-j and P1-k use a synthetic sol-air signal** `T_sa = 50 − 24 cos(2πt/day)` °C. The comparison
-  with ANSYS (P1-l) is skipped until the real input file and the ANSYS curve are available.
-- **Halved-resolution reruns:** the P1-b, P1-e, P1-h and P1-j tests also run at half the mesh size
-  and/or half the time step, and assert that the result moves by less than 1/5 of the tolerance.
-- **P1-m measures the observed orders on four refinements.** The time order is measured both on an
-  unforced eigenmode problem and on a forced problem with a source, time-dependent Dirichlet and
-  Robin conditions.
+### Source values not confirmed
+
+The reference documents contain values that the recomputation (`references/verify_reference_values.py`) does
+not confirm. The tests use the recomputed values:
+- **P1-a:** flux 2.4e-12 → 2.4e-9 kg/(m² s), because mm were not converted.
+- **P1-b:** 7.025 h → 7.047 h; the source interpolated an erf table.
+- **P1-f:** surface concentration 2.8e19 → 6.97e19 at/cm³; the source value matches t = 36 min.
+- **P1-d:** D(1000 K) 2.04e-13 → 2.067e-13 m²/s and D(800 K) 2.11e-15 → 2.140e-15 m²/s (1.3–1.4%, cause not
+  identified).
+- **P1-g:** D0 3.2 m²/s → 3.11 cm²/s (unit slip), and D(1300 °C) 5.86e-11 m²/s → 1.74e-11 cm²/s (cause not
+  identified).
+- **P1-k:** "below 0.01 K" is infeasible for the 48 K swing → quasi-steady bound 0.0255 K.
+- **P2-e:** the r = 1.5a rows (e.g. 2100 MPa → 25.93 MPa).
+- **P3-a:** the source fit chose different points: m 0.4077 → 0.385 and K 559.27 → 548 MPa (log-log, σ_y fixed).
+
+P3-b uses the tabulated hardening curve, as the source's Abaqus run does: the stress-strain curve is flat at
+457 MPa, so a small stress misfit of a Ludwik fit becomes a large plastic-strain error there.
+
+### Disclosed changes to the test plan
+
+Each change was approved before it was made. Details, and the numbers from before each change, are in
+[docs/VALIDATION.md](docs/VALIDATION.md):
+- **P1-k:** the infeasible bound above was replaced.
+- **P2-f:** the orders are fitted on levels 1–4. Level 0 is pre-asymptotic, and the T6 pass depends on
+  leaving it out.
+- **P3-d:** the Newton rate is asserted on the FE bar, because on the hole plate Newton reaches round-off
+  too fast for the rate criterion.
+- **P4-e:** the test runs on the finest mesh, because of a constant O(h²) interpolation offset on level 2.
+- **P4-f (iii):** the test is posed in excess temperature, to avoid floating-point cancellation.
+- **P4-c to P4-h:** the P4-f to P4-h rows were written in phase 4 together with their tests, and the P4-c
+  tolerance was clarified to an absolute 0.0025 where the target is zero.
+- **CI:** `ubuntu-24.04` instead of `ubuntu-latest`, because the build requires Gmsh 4.12.1.
+- **P1-l** (comparison with ANSYS) is skipped until the real input file and the ANSYS curve are provided.
+
+### Key figures
 
 | | |
 | --- | --- |
-| ![Carburizing: FE vs erf solution](docs/figures/phase1_erf_profile.png) | ![Thin-film decay and dose conservation](docs/figures/phase1_thin_film_decay.png) |
-| ![Steel plate inner face vs lumped model](docs/figures/phase1_steel_plate_inner_face.png) | ![Convergence orders](docs/figures/phase1_convergence.png) |
+| ![Carburizing: FE vs erf solution](docs/figures/phase1_erf_profile.png) | ![Kirsch profiles vs exact](docs/figures/phase2_kirsch_profiles.png) |
+| ![Kirsch convergence orders](docs/figures/phase2_convergence.png) | ![Ludwik fits and the uniaxial material point](docs/figures/phase3_tensile_fit.png) |
+| ![Plastic zone at the hole edge](docs/figures/phase3_plastic_zone.png) | ![Beam block: temperature and von Mises at the end of the pulse](docs/figures/phase4_beam_block_maps.png) |
 
-Notes on phase 2 (derivations in [docs/learning/phase2.md](docs/learning/phase2.md)):
-- **Kirsch set-up:** a quarter model [0, 5a]² with symmetry conditions. The exact Kirsch tractions are
-  applied on the outer edges, so the finite model represents the infinite plate exactly (section 9).
-  Remote stress 140 MPa along y, plane stress, unit thickness. Each point stress is computed in the
-  element that contains the point, and averaged over all such elements when the point lies on a shared
-  edge or node (the Kt node (a, 0), for example). Nodal averages are used only for plots and the VTU file.
-- **Meshes:** generated by Gmsh 4.12.1 from `cases/kirsch/kirsch.geo` during the build. There are five
-  levels (`-clscale` 1 to 1/16), with curved T6 edges on the hole. "Finest" means level 4.
-- **P2-f, disclosed change:** the first run fitted levels 0 to 3, with level 4 not yet generated.
-  - The T6 L2 order came out at 3.25 (plane stress) and 3.27 (plane strain), outside 3 ± 0.15.
-  - The pairwise orders, 3.53, 3.17 and 3.12, were falling toward 3. A scratch level 4 gave 3.03.
-  - So level 0 is pre-asymptotic. The error-norm quadrature was checked and is not the cause.
-  - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.21
-    (plane strain), still outside the tolerance. The pass depends on leaving level 0 out of the fit.
-  - With the user's approval, level 4 was added and the order is now fitted on levels 1 to 4, for T3
-    and T6 alike. Level 0 is still computed and printed by the test.
-- **P2-c..e on level 3**, the finest mesh before level 4 was added: Kt = 2.99876 (−0.041%), and the
-  largest point-stress errors were 0.036 MPa (P2-d) and 0.031 MPa (P2-e).
-- **P2-c also reports T3:** 2.973 on level 4 (−0.9%). It is not asserted, because the reference row is
-  for T6.
-
-| | |
-| --- | --- |
-| ![Kirsch plate von Mises stress](docs/figures/phase2_kirsch_von_mises.png) | ![Kirsch profiles vs exact](docs/figures/phase2_kirsch_profiles.png) |
-| ![Kirsch convergence orders](docs/figures/phase2_convergence.png) | |
-
-Notes on phase 3 (derivations in [docs/learning/phase3.md](docs/learning/phase3.md)):
-- **Material data:**
-  - E = 207.423 GPa and ν = 0.3.
-  - The tabulated hardening curve is `references/data/tensile_true.csv` from the yield point
-    (310.56 MPa) on, with α = ε − σ/E. The first α comes out at −3.2e-6 because the digitised elastic
-    slope is 210 GPa, and is clipped to 0.
-  - The Ludwik source parameters are 310.86 MPa, 559.27 MPa and 0.4077.
-- **P3-a, the fit:**
-  - The log-log fit with σ_y fixed reproduces the reference (m = 0.385, K = 548 MPa).
-  - The deliverable is a 3-parameter least-squares fit on stress: σ_y0 = 309.1 ± 11.7 MPa,
-    K = 520.9 ± 39.2 MPa, m = 0.362 ± 0.040 (95% intervals, covariance, 5 dof). The source values are
-    in the table next to these.
-  - The leave-one-out jackknife gives much larger standard errors (102 MPa, 50 MPa, 0.13).
-    Without the yield point σ_y0 drops to 193 MPa: no data lie between εᵖ = 0 and 0.0086, so one point
-    fixes the knee. That is a limit of the 8-point data set, not of the solver.
-- **P3-b is nearly tautological.** 457.24 MPa is a data point, and the tabulated law passes through it,
-  so ε_yy is a round trip. The informative check is the lateral strain: −νσ/E elastic plus −α/2
-  plastic (incompressibility).
-- **P3-d, disclosed change.**
-  - The plan asserted the Newton rate on the Kirsch plate (T6 level 2, plane strain, one step from 100
-    to 140 MPa).
-  - With a consistent tangent, Newton went from 1.9e-6 to 1.4e-10 to the 7e-14 round-off floor once
-    the plastic set settled. That left too few iterates for the pre-fixed rate criterion: no qualifying
-    triple.
-  - With the user's approval, the rate is asserted on the FE bar, where the active set is fixed by
-    construction. The criterion is unchanged. The hole-plate sequence is still printed and plotted.
-  - The bar is uniform, so this rate checks the tangent along the loading path: it amounts to a scalar
-    Newton on σ_yy(ε_yy). It still fails with a continuum tangent.
-  - The full global tangent is checked separately. The test "Global tangent matches finite differences of
-    the internal force" compares K_T·v with a central difference of f_int on a non-uniform plastic
-    Kirsch state, to 1e-6.
-- **P3-c, the ±2s band is a weak test for the least-squares fit:** with 8 points and 3 parameters, no
-  residual can exceed √5·s = 2.24s. The source's Ludwik parameters miss the band at 3 of the 7 points
-  (−2.95s, −2.99s, −2.26s). This is printed by the test, not asserted.
-- **P3-f is a report, not a validation.**
-  - Set-up: the quarter Kirsch model with the elastic Kirsch tractions on the 5a boundary (an
-    approximation once a plastic zone exists), tabulated hardening, and 28 load steps.
-  - Plane stress is the thin plate of the source's Abaqus model. On T6 level 3, at the notch root, FE
-    against Neuber's estimate gives:
-
-    | Quantity | FE | Neuber | Difference |
-    | --- | --- | --- | --- |
-    | edge strain ε_yy | 0.002357 | 0.002647 | −11% |
-    | equivalent plastic strain | 0.000811 | 0.001098 | −26% |
-    | stress at the point nearest the edge | 318.7 MPa | 321.3 MPa | −0.8% |
-
-    The level-4 values are in the table. Neuber overestimating the strain is the usual direction.
-  - The largest σ_yy in the field (331 MPa) is not at the root: it sits at the plastic-zone boundary,
-    r ≈ 1.17a, where σ_xx > 0.
-  - The plastic-zone extent is 0.159a, 0.167a, 0.175a and 0.174a on levels 1 to 4: +4.6% from level 2 to 3,
-    then −0.3% from level 3 to 4.
-  - In plane strain the notch root is biaxial (σ_zz ≈ 124 MPa), so uniaxial Neuber does not apply and
-    is listed only for comparison.
-  - The level-4 rows come from tests tagged `slow`.
-
-| | |
-| --- | --- |
-| ![Ludwik fits and the uniaxial material point](docs/figures/phase3_tensile_fit.png) | ![Newton residual histories](docs/figures/phase3_newton_history.png) |
-| ![Plastic zone at the hole edge](docs/figures/phase3_plastic_zone.png) | |
-
-### Phase 4 notes
-
-- **Thermal load.** `f_th = ∫ Bᵀ m β ΔT_h dA` with β = Eα/(1−ν) (plane stress) or Eα/(1−2ν) (plane strain).
-  Stress recovery subtracts β ΔT_h m. In plane strain σ_zz = ν(σ_xx + σ_yy) − EαΔT; the case output had
-  dropped the thermal term until `tests/phase4/thermal_output.cpp` caught it (derivation:
-  [docs/learning/phase4.md](docs/learning/phase4.md)).
-- **P4-a, P4-b, P4-f (i) and (iii)** are exact for the discretisation and hold to round-off (≤ 5e-11).
-  **P4-f (ii)**, the discrete energy balance, is an identity of the θ-scheme for any M, A, F. It checks the
-  integrator's bookkeeping only. So the same test also asserts `A·(T_inf 1) = F` on a curved Robin rim with a
-  face sink (5e-17), which a wrong load would fail.
-- **P4-e** runs on the finest mesh. Disclosed change: the first run used level 2, where the T3 variance was
-  0.55% off (tolerance 0.5%). The cause was a constant O(h²) offset from interpolating the initial Gaussian,
-  while the growth 2at matched to about 1e-6. On straight T6 the variance identity holds almost by
-  construction, so **P4-h** (L2 order of the whole profile) is the real accuracy test.
-- **P4-h** uses Crank-Nicolson with dt ∝ h^((p+1)/2), so the asserted slope is the combined space-time order
-  along that path. The time part is 2% of the error for T3 and about half for T6, measured on level 2 as
-  (4/3)‖T(dt) − T(dt/2)‖. A wrong spatial order would still show: T6 at 2.5 would fit about 2.6. The numerics
-  review's Richardson-corrected space-only orders are 3.03 (T6) and 1.95 (T3).
-- **P4-f (iii)** is posed in excess temperature (T_inf = 0) with k = 0.4 W/(m K). Disclosed change: the
-  first run (T_inf = 300 K, k = 400) missed 1e-10 by up to 6e-6, from floating point (cancellation and a
-  solve dominated by conduction) and not from discretisation.
-
-| | |
-| --- | --- |
-| ![Thin disk stresses vs Timoshenko and Goodier](docs/figures/phase4_thin_disk.png) | ![Gaussian spreading: variance and profile](docs/figures/phase4_gaussian.png) |
-| ![Phase 4 convergence orders](docs/figures/phase4_convergence.png) | |
+All figures, with the notes behind them, are in [docs/VALIDATION.md](docs/VALIDATION.md).
 
 ### Demo D4: beam-heated block (not a validation)
 
-A Gaussian beam deposits 1 kJ per metre of path in 10 µs in a long block. The model is the block's
-40 mm x 40 mm section, in plane strain; a long block is really in generalised plane strain, which shifts
-σ_zz by 0.06% to 5% of its peak for s = 0.5 to 4 mm. The material properties are cited in
-[cases/beam_block/README.md](cases/beam_block/README.md). Every finite-element centre value is within 0.5% (ΔT)
-and 4.5% (von Mises) of the closed-form infinite-plane estimate that the demo prints next to it. The ΔT gap is
-diffusion during the pulse, largest at s = 0.5 mm. The stress gap is the finite section, largest at s = 4 mm.
-
-**Interpretation.** At equal deposited energy the hot spot is about 2.65 times hotter in graphite
-(123 K vs 46 K at s = 1 mm) because its ρc is lower. Yet it carries 20 times less stress
-(3.7 vs 74 MPa von Mises at the centre), because the stress scales with Eα/((1−ν)ρc), which is 0.047 Pa m³/J for
-graphite against 0.93 for copper. The stress is mostly compressive and out of plane: the cold block prevents the hot
-core from expanding, and σ_zz ≈ −EαΔT/(1−ν) is twice the in-plane stress at the centre. The peak stress falls as
-1/s². So for this deposit annealed copper (yield 69 MPa) yields for s ≤ 1 mm (von Mises / yield = 4.3 at
-0.5 mm, 1.08 at 1 mm), while graphite stays below 6% of its flexural strength and 23% of its compressive
-strength even at 0.5 mm. This is why beam dumps and absorbers use graphite. The stresses peak at the end of the
-pulse and relax as heat diffuses over the spot. For copper at s = 1 mm they fall to 31% of the peak by 10 ms
-and 4.4% by 100 ms, long before convection removes the energy. The cooling uses backward Euler with 40 steps per
-decade, and these values are within 1.4% of a run with 4× smaller steps.
-These are elastic, constant-property results. Above yield, copper would need thermoplasticity. Graphite at
-s = 0.5 mm reaches 782 K, where its specific heat is 2.3 times the room value, so that row overestimates
-the temperature rise by about 54%.
-
-| | |
-| --- | --- |
-| ![Beam block: temperature and von Mises at the end of the pulse](docs/figures/phase4_beam_block_maps.png) | ![Beam size sweep: centre stress and strength ratios](docs/figures/phase4_beam_block_sweep.png) |
+A Gaussian beam deposits 1 kJ per metre of path in 10 µs into a long 40 mm x 40 mm block of copper or graphite,
+solved in plane strain (properties and sources: [cases/beam_block/README.md](cases/beam_block/README.md)). At
+equal deposited energy, graphite has a 2.65 times larger temperature rise than copper (123 K vs 46.2 K at
+s = 1 mm) yet carries 20 times less von Mises stress (3.7 vs 74.3 MPa at the centre), because the stress scales with
+Eα/((1−ν)ρc). Annealed copper exceeds yield for s ≤ 1 mm; graphite stays below 6% (5.4% at s = 0.5 mm) of its flexural strength, an optimistic tensile check. The demo
+illustrates graphite's thermal-shock resistance only; its lower energy density for the same beam is outside it.
+These are elastic, constant-property estimates; the Gaussian stands in for a FLUKA or Geant4 energy map. Full
+interpretation in [docs/VALIDATION.md](docs/VALIDATION.md#demo-d4-beam-heated-block-not-a-validation) and in
+section 4 of the report.
 
 ## Build and test
 
@@ -336,63 +232,47 @@ python3 scripts/plot_phase3.py                       # phase 3 figures, after ct
 
 The two level-4 elastoplastic plate tests take a few minutes each. Skip them with `ctest -LE slow`.
 
+Regenerate the results table, the report numbers and the report (needs `latexmk` and a TeX Live with
+`siunitx`, `natbib` and `cleveref`):
+
+```bash
+./build/src/tmfem cases/beam_block/copper.json && ./build/src/tmfem cases/beam_block/graphite.json
+ctest --test-dir build -V > results/ctest_full.log 2>&1   # full run, keeps the printed values
+python3 scripts/build_results_table.py                    # README table
+python3 scripts/report_numbers.py                         # report/generated/*, docs/PROVENANCE.md
+(cd report && latexmk -pdf main.tex)                      # report/main.pdf
+```
+
 The build reruns `scripts/make_meshes.sh` when the script or a `.geo` file changes. To force it, delete
 `build/meshes.stamp` or run `bash scripts/make_meshes.sh`.
 
 ## Limitations
 
-Out of scope by design: 3D, large deformation, dynamics, temperature-dependent properties,
-contact, radiation, real particle-shower energy maps.
+- **Out of scope by design:** 3D, large deformation, dynamics and stress waves, temperature-dependent
+  properties, contact, radiation, real particle-shower energy maps.
+- **Elements and materials:** triangles only (T3, T6); one isotropic material per run; unit thickness; no body
+  force. J2 plasticity with isotropic hardening only (no Bauschinger effect), rate-independent and isothermal.
+- **Time integration:** fixed steps without error control. In 2D, consistent capacity only (row-sum lumping
+  gives zero capacity to T6 corner nodes).
+- **Benchmarks:** the Kirsch plate uses infinite-plate tractions, not the source's finite Abaqus plate. The
+  elastoplastic hole plate keeps elastic Kirsch tractions on its outer boundary and is reported only. The
+  steel plate is validated against a lumped model with a synthetic input, not against ANSYS (P1-l skipped).
+  Quadratic Newton convergence is asserted with Ludwik hardening only, because the tabulated law has slope
+  jumps. The fit uncertainty describes 8 digitised points and model misfit, not material scatter.
+- **Demo:** plane strain instead of generalised plane strain (a σ_zz shift of 0.06% to 5% of the peak |σ_zz|, twice
+  that fraction in the centre von Mises);
+  elastic and constant-property (graphite at s = 0.5 mm overestimates its temperature rise by about
+  54%); assumed graphite ν and c; one-way, quasi-static coupling.
+- **Reproducibility:** results depend on the Gmsh 4.12.1 meshes; the build refuses other Gmsh versions.
 
-Phase 1 (1D heat and diffusion):
-- **Linear elements, one dimension:** lateral faces are adiabatic.
-- **Constant properties:**
-  - k, ρc and D are constant in time and temperature.
-  - The Arrhenius `D(T)` is evaluated, not coupled into the solver.
-- **Linear convection only, no radiation.**
-- **Fixed time step:** changing dt refactorises the matrix, and there is no adaptive error control.
-- **The steel-plate validation is against a lumped model with a synthetic input.** It is not yet
-  compared with the source's ANSYS run.
-
-Phase 2 (2D linear elasticity):
-- **Small strain, linear isotropic material, one material per run, no body force.**
-- **Unit thickness:** reactions are in N per metre of depth.
-- **Triangles only (T3, T6):** no quadrilaterals. On curved T6 the 3-point stiffness rule is not exact,
-  but it keeps the optimal convergence order.
-- **Point stresses come straight from the elements, averaged where elements meet:** there is no stress recovery scheme beyond nodal
-  averaging for plots.
-- **The Kirsch benchmark uses the infinite-plate tractions:** it is not a finite-width plate like the
-  source's Abaqus model.
-- **Mesh dependence:** another Gmsh version would produce slightly different meshes, and so slightly
-  different numbers.
-
-Phase 3 (elastoplasticity):
-- **Small strain, isotropic hardening only:** there is no kinematic hardening, so no Bauschinger effect.
-  The model is rate-independent and isothermal.
-- **The hole plate uses elastic Kirsch tractions** on the 5a boundary. Hole-edge stresses come from the
-  nearest quadrature point, and the edge strain comes from the displacement field.
-- **Tabulated hardening has slope jumps** at the data points, so quadratic Newton convergence is
-  asserted with Ludwik only.
-- **The fit uncertainty describes 8 digitised points and model misfit,** not material scatter.
-
-Phase 4 (thermo-mechanical coupling):
-- **The beam-block demo uses plane strain (eps_zz = 0); the real state of a long block is generalised plane
-  strain:** eps_zz is a constant set by zero net axial force. The difference is a uniform sigma_zz shift of
-  E alpha mean(dT), which is (1 - nu) 2 pi s^2 / A of the peak |sigma_zz|. For copper in the
-  40 mm x 40 mm section this is 0.06% at s = 0.5 mm, 0.26% at 1 mm, 1.0% at 2 mm and 4.1% at 4 mm
-  (docs/learning/phase4.md section 11). Plane strain is exact for a block whose ends are held.
-- **Constant properties (780 K limit):** with constant properties, graphite at s = 0.5 mm reaches about
-  780 K, where its specific heat is 2.3 times the room-temperature value (NIST-JANAF). The same deposit
-  with c(T) gives 612 K, so that row overestimates the temperature rise by 54%.
-- **Assumed graphite values:** nu = 0.2 and c from NIST-JANAF ideal graphite. Neither is on the SGL R4550
-  data sheet.
-- **One-way, quasi-static coupling:** stress does not feed back into temperature, and there are no inertia
-  or stress waves. The demo's thermal analysis is elastic only (no thermoplasticity).
-- **Consistent capacity only in 2D:** row-sum lumping would give zero capacity to T6 corner nodes, so there
-  is no discrete maximum principle for sharp data. No undershoot beyond round-off (3e-10 K) was observed in the demo at the end of the pulse.
-- **The demo's peak stresses are nodal averages;** centre values come from point evaluation.
+Per-phase limitations, with the reasoning behind them, are in `docs/learning/phaseN.md` section "Limitations".
 
 ## Credits
 
-Benchmark cases adapted from M. R. Kabiri, ENSAM Meknès lab materials (with permission);
-analytical solutions from the textbooks cited next to each test.
+Benchmark cases adapted from M. R. Kabiri, ENSAM Meknès lab materials (with permission). Analytical solutions:
+Kirsch (1898) and Timoshenko & Goodier, *Theory of Elasticity* (hole plate, thin disk); Crank, *The
+Mathematics of Diffusion* (erf and thin-film solutions); Neuber (1961) (notch estimate). Algorithms: Simo &
+Hughes, *Computational Inelasticity*, and de Souza Neto, Perić & Owen, *Computational Methods for
+Plasticity* (radial return, consistent tangent); Dunavant (1985) (triangle quadrature). Material data for the
+demo: see [cases/beam_block/README.md](cases/beam_block/README.md) and NIST-JANAF. Full references:
+[report/refs.bib](report/refs.bib).

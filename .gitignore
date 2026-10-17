@@ -5,3 +5,12 @@ results/
 references/original/
 __pycache__/
 *.pyc
+# LaTeX build products (report/main.pdf is built with latexmk, not committed)
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.log
+report/*.out
+report/*.pdf

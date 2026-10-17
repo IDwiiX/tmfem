@@ -14,7 +14,15 @@ import re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VALIDATION = os.path.join(ROOT, "results", "validation")
 README = os.path.join(ROOT, "README.md")
+REFERENCE_VALUES = os.path.join(ROOT, "docs", "REFERENCE_VALUES.md")
 BEGIN, END = "<!-- results:begin -->", "<!-- results:end -->"
+
+# Reference rows that no test can produce yet, with the reason shown in the table. Any other reference ID
+# without a recorded row is an error, so the table always covers docs/REFERENCE_VALUES.md.
+SKIPPED = {
+    "P1-l": ("skipped: references/data/ttab.csv and the ANSYS curve are not provided",
+             "P1-l steel plate vs ANSYS inner face"),
+}
 
 BENCHMARK = {
     "P1-a": "Steady diffusion flux (ex. 1)",
@@ -28,6 +36,7 @@ BENCHMARK = {
     "P1-i": "Steel plate parameters",
     "P1-j": "Steel plate, FE vs lumped ODE",
     "P1-k": "Steel plate, through-thickness difference",
+    "P1-l": "Steel plate, real ttab vs ANSYS",
     "P1-m": "1D heat convergence orders",
     "P2-a": "Patch test, distorted mesh",
     "P2-b": "Uniform bar in tension",
@@ -75,11 +84,30 @@ def error_text(row):
     return f"({text})" if row["tolerance"] == "report only" else text
 
 
-def main():
+def reference_ids():
+    """Row IDs of the phase tables in docs/REFERENCE_VALUES.md (stretch goals excluded)."""
+    with open(REFERENCE_VALUES) as f:
+        return sorted(set(re.findall(r"^\| (P\d-[a-z]) \|", f.read(), re.M)))
+
+
+def load_rows():
     rows = []
     for path in glob.glob(os.path.join(VALIDATION, "*.csv")):
         with open(path, newline="") as f:
             rows.extend(csv.DictReader(f))
+    return rows
+
+
+def main():
+    rows = load_rows()
+    recorded = {r["id"] for r in rows}
+    missing = [i for i in reference_ids() if i not in recorded and i not in SKIPPED]
+    if missing:
+        raise SystemExit(f"reference rows with no recorded result: {', '.join(missing)} (run the full ctest)")
+    for rid, (reason, test) in SKIPPED.items():
+        if rid not in recorded:
+            rows.append({"id": rid, "quantity": reason, "reference": "nan", "tmfem": "nan",
+                         "tolerance": "report only", "test": test})
     rows.sort(key=id_key)
     lines = ["| ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |",
              "| --- | --- | --- | --- | --- | --- | --- | --- |"]

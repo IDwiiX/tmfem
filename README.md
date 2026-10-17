@@ -5,8 +5,11 @@ von Mises elastoplasticity and one-way thermo-mechanical coupling. Every capabil
 validation test against an analytical solution or a reference result. It is a learning and validation
 project; it does not replace ANSYS or Abaqus.
 
-**Status:** phase 1 of 5 validated: 1D transient heat conduction and diffusion. 2D elasticity,
-plasticity and thermo-mechanical coupling are not built yet.
+**Status:** phases 1 and 2 of 5 validated:
+- 1D transient heat conduction and diffusion
+- 2D linear elasticity with T3/T6 triangles, plane stress and plane strain
+
+Plasticity and thermo-mechanical coupling are not built yet.
 
 ## Results
 
@@ -15,7 +18,7 @@ table is regenerated from those files by `python3 scripts/build_results_table.py
 Reference IDs and tolerances are defined in [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md).
 The error column is relative (%) except where the tolerance is absolute or the reference is zero.
 
-### Phase 1: 1D heat and diffusion
+### Phases 1 and 2
 
 <!-- results:begin -->
 | ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |
@@ -48,6 +51,22 @@ The error column is relative (%) except where the tolerance is absolute or the r
 | P1-m | 1D heat convergence orders | space order lumped mass | 2 | 2.00849 | +0.00849 | +/- 0.15 | `P1-m spatial order lumped mass` |
 | P1-m | 1D heat convergence orders | time order BE | 1 | 0.98331 | -0.0167 | +/- 0.15 | `P1-m temporal order backward Euler` |
 | P1-m | 1D heat convergence orders | time order CN | 2 | 2.00048 | +0.000483 | +/- 0.15 | `P1-m temporal order Crank-Nicolson` |
+| P2-a | Patch test, distorted mesh | T3 max relative error (u, sigma) | 0 | 5.81102e-15 | +5.81e-15 | 1e-10 relative | `P2-a patch test T3 distorted mesh` |
+| P2-a | Patch test, distorted mesh | T6 max relative error (u, sigma) | 0 | 7.96939e-14 | +7.97e-14 | 1e-10 relative | `P2-a patch test T6 distorted mesh` |
+| P2-b | Uniform bar in tension | T3 max rel error of end displacement | 0 | 1.61639e-14 | +1.62e-14 | 1e-8 relative | `P2-b uniform bar end displacement` |
+| P2-b | Uniform bar in tension | T6 max rel error of end displacement | 0 | 1.22986e-13 | +1.23e-13 | 1e-8 relative | `P2-b uniform bar end displacement` |
+| P2-c | Kirsch plate, stress concentration | Kt finest T3 (report only) | 3 | 2.97304 | -0.899% | not asserted | `P2-c Kirsch Kt on finest T6 mesh` |
+| P2-c | Kirsch plate, stress concentration | Kt finest T6 | 3 | 2.99969 | -0.0103% | 1% | `P2-c Kirsch Kt on finest T6 mesh` |
+| P2-d | Kirsch plate, r/a = 2 and 4 | max abs stress error, 20 rows x 3 components [MPa] | 0 | 0.00441135 | +0.00441 | 2 MPa | `P2-d Kirsch stresses at r/a = 2 and 4` |
+| P2-e | Kirsch plate, r/a = 1.5 | max abs stress error, 10 rows x 3 components [MPa] | 0 | 0.0117644 | +0.0118 | 2 MPa | `P2-e Kirsch stresses at r/a = 1.5` |
+| P2-f | Kirsch convergence orders | T3 plane strain L2 order (levels 1-4) | 2 | 1.96584 | -0.0342 | +/- 0.15 | `P2-f Kirsch convergence T3` |
+| P2-f | Kirsch convergence orders | T3 plane strain energy order (levels 1-4) | 1 | 0.990579 | -0.00942 | +/- 0.15 | `P2-f Kirsch convergence T3` |
+| P2-f | Kirsch convergence orders | T3 plane stress L2 order (levels 1-4) | 2 | 1.97459 | -0.0254 | +/- 0.15 | `P2-f Kirsch convergence T3` |
+| P2-f | Kirsch convergence orders | T3 plane stress energy order (levels 1-4) | 1 | 0.992547 | -0.00745 | +/- 0.15 | `P2-f Kirsch convergence T3` |
+| P2-f | Kirsch convergence orders | T6 plane strain L2 order (levels 1-4) | 3 | 3.12065 | +0.121 | +/- 0.15 | `P2-f Kirsch convergence T6` |
+| P2-f | Kirsch convergence orders | T6 plane strain energy order (levels 1-4) | 2 | 1.96535 | -0.0346 | +/- 0.15 | `P2-f Kirsch convergence T6` |
+| P2-f | Kirsch convergence orders | T6 plane stress L2 order (levels 1-4) | 3 | 3.10864 | +0.109 | +/- 0.15 | `P2-f Kirsch convergence T6` |
+| P2-f | Kirsch convergence orders | T6 plane stress energy order (levels 1-4) | 2 | 1.97369 | -0.0263 | +/- 0.15 | `P2-f Kirsch convergence T6` |
 <!-- results:end -->
 
 Notes:
@@ -71,6 +90,32 @@ Notes:
 | ![Carburizing: FE vs erf solution](docs/figures/phase1_erf_profile.png) | ![Thin-film decay and dose conservation](docs/figures/phase1_thin_film_decay.png) |
 | ![Steel plate inner face vs lumped model](docs/figures/phase1_steel_plate_inner_face.png) | ![Convergence orders](docs/figures/phase1_convergence.png) |
 
+Notes on phase 2 (derivations in [docs/learning/phase2.md](docs/learning/phase2.md)):
+- **Kirsch set-up:** a quarter model [0, 5a]² with symmetry conditions. The exact Kirsch tractions are
+  applied on the outer edges, so the finite model represents the infinite plate exactly (section 9).
+  Remote stress 140 MPa along y, plane stress, unit thickness. Each point stress is computed in the
+  element that contains the point, and averaged over all such elements when the point lies on a shared
+  edge or node (the Kt node (a, 0), for example). Nodal averages are used only for plots and the VTU file.
+- **Meshes:** generated by Gmsh 4.12.1 from `cases/kirsch/kirsch.geo` and committed. There are five
+  levels (`-clscale` 1 to 1/16), with curved T6 edges on the hole. "Finest" means level 4.
+- **P2-f, disclosed change:** the first run fitted levels 0 to 3, with level 4 not yet generated.
+  - The T6 L2 order came out at 3.25 (plane stress) and 3.27 (plane strain), outside 3 ± 0.15.
+  - The pairwise orders, 3.53, 3.17 and 3.12, were falling toward 3. A scratch level 4 gave 3.03.
+  - So level 0 is pre-asymptotic. The error-norm quadrature was checked and is not the cause.
+  - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.21
+    (plane strain), still outside the tolerance. The pass depends on leaving level 0 out of the fit.
+  - With the user's approval, level 4 was added and the order is now fitted on levels 1 to 4, for T3
+    and T6 alike. Level 0 is still computed and printed by the test.
+- **P2-c..e on level 3**, the finest mesh before level 4 was added: Kt = 2.99876 (−0.041%), and the
+  largest point-stress errors were 0.036 MPa (P2-d) and 0.031 MPa (P2-e).
+- **P2-c also reports T3:** 2.973 on level 4 (−0.9%). It is not asserted, because the reference row is
+  for T6.
+
+| | |
+| --- | --- |
+| ![Kirsch plate von Mises stress](docs/figures/phase2_kirsch_von_mises.png) | ![Kirsch profiles vs exact](docs/figures/phase2_kirsch_profiles.png) |
+| ![Kirsch convergence orders](docs/figures/phase2_convergence.png) | |
+
 ## Build and test
 
 Requires a C++17 compiler, CMake >= 3.16 and Eigen 3 (`sudo apt install libeigen3-dev`).
@@ -90,7 +135,11 @@ Run a case from the repository root (paths inside case files are relative to it)
 ```bash
 ./build/src/tmfem cases/steel_plate/synthetic.json   # writes results/steel_plate/synthetic_faces.csv
 python3 scripts/plot_phase1.py                       # phase 1 figures, after ctest -L phase1
+./build/src/tmfem cases/kirsch/kirsch_t6.json        # writes results/kirsch/kirsch_t6.vtu (ParaView)
+python3 scripts/plot_phase2.py                       # phase 2 figures, after the case and ctest -L phase2
 ```
+
+The `.msh` files are committed. `bash scripts/make_meshes.sh` regenerates them and needs Gmsh 4.12.1.
 
 ## Limitations
 
@@ -106,6 +155,18 @@ Phase 1 (1D heat and diffusion):
 - **Fixed time step:** changing dt refactorises the matrix, and there is no adaptive error control.
 - **The steel-plate validation is against a lumped model with a synthetic input.** It is not yet
   compared with the source's ANSYS run.
+
+Phase 2 (2D linear elasticity):
+- **Small strain, linear isotropic material, one material per run, no body force.**
+- **Unit thickness:** reactions are in N per metre of depth.
+- **Triangles only (T3, T6):** no quadrilaterals. On curved T6 the 3-point stiffness rule is not exact,
+  but it keeps the optimal convergence order.
+- **Point stresses come straight from the elements, averaged where elements meet:** there is no stress recovery scheme beyond nodal
+  averaging for plots.
+- **The Kirsch benchmark uses the infinite-plate tractions:** it is not a finite-width plate like the
+  source's Abaqus model.
+- **Mesh dependence:** another Gmsh version would produce slightly different meshes, and so slightly
+  different numbers.
 
 ## Credits
 

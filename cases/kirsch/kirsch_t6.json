@@ -1,0 +1,16 @@
+{
+  "case_type": "elastic2d",
+  "description": "Kirsch plate with a hole, quarter model, exact Kirsch tractions, finest T6 mesh, level 4 (docs/learning/phase2.md section 9)",
+  "mesh": "cases/kirsch/msh/kirsch_t6_l4.msh",
+  "material": {"E_GPa": 207.423, "nu": 0.3},
+  "plane": "plane_stress",
+  "region": "domain",
+  "boundary_conditions": [
+    {"physical": "sym_x", "type": "displacement", "component": "x", "value_m": 0.0},
+    {"physical": "sym_y", "type": "displacement", "component": "y", "value_m": 0.0},
+    {"physical": "outer_right", "type": "kirsch_traction", "S_MPa": 140.0, "a_m": 0.010, "normal": [1.0, 0.0]},
+    {"physical": "outer_top", "type": "kirsch_traction", "S_MPa": 140.0, "a_m": 0.010, "normal": [0.0, 1.0]}
+  ],
+  "output_vtu": "results/kirsch/kirsch_t6.vtu",
+  "output_nodal_csv": "results/kirsch/kirsch_t6_nodal.csv"
+}

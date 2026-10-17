@@ -28,6 +28,12 @@ BENCHMARK = {
     "P1-j": "Steel plate, FE vs lumped ODE",
     "P1-k": "Steel plate, through-thickness difference",
     "P1-m": "1D heat convergence orders",
+    "P2-a": "Patch test, distorted mesh",
+    "P2-b": "Uniform bar in tension",
+    "P2-c": "Kirsch plate, stress concentration",
+    "P2-d": "Kirsch plate, r/a = 2 and 4",
+    "P2-e": "Kirsch plate, r/a = 1.5",
+    "P2-f": "Kirsch convergence orders",
 }
 
 

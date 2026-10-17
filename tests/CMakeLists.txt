@@ -23,3 +23,13 @@ tmfem_add_phase_tests(phase1 SOURCES
   phase1/thin_film.cpp
   phase1/steel_plate.cpp
   phase1/heat1d_convergence.cpp)
+tmfem_add_phase_tests(phase2 SOURCES
+  phase2/gmsh_reader.cpp
+  phase2/shape_functions.cpp
+  phase2/elasticity_units.cpp
+  phase2/kirsch_analytic.cpp
+  phase2/vtu_writer.cpp
+  phase2/patch.cpp
+  phase2/bar_elastic.cpp
+  phase2/kirsch.cpp
+  phase2/kirsch_convergence.cpp)

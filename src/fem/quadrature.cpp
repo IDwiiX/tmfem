@@ -36,4 +36,31 @@ QuadRule1D gauss_legendre(int n) {
   }
 }
 
+QuadRuleTri triangle_rule(int n_points) {
+  switch (n_points) {
+    case 1:
+      return {{Eigen::Vector2d(1.0 / 3.0, 1.0 / 3.0)}, {0.5}};
+    case 3:
+      return {{Eigen::Vector2d(1.0 / 6.0, 1.0 / 6.0), Eigen::Vector2d(2.0 / 3.0, 1.0 / 6.0),
+               Eigen::Vector2d(1.0 / 6.0, 2.0 / 3.0)},
+              {1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0}};
+    default:
+      throw std::invalid_argument("triangle_rule: n_points must be 1 or 3");
+  }
+}
+
+QuadRuleTri triangle_collapsed_gauss(int n) {
+  const QuadRule1D g = gauss_legendre(n);
+  QuadRuleTri rule;
+  for (std::size_t i = 0; i < g.xi.size(); ++i) {
+    const double u = 0.5 * (1.0 + g.xi[i]);  // [-1, 1] -> [0, 1], weight halved
+    for (std::size_t j = 0; j < g.xi.size(); ++j) {
+      const double v = 0.5 * (1.0 + g.xi[j]);
+      rule.xi.emplace_back(u, v * (1.0 - u));
+      rule.w.push_back(0.25 * g.w[i] * g.w[j] * (1.0 - u));
+    }
+  }
+  return rule;
+}
+
 }  // namespace tmfem

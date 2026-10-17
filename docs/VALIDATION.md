@@ -19,7 +19,7 @@ Notes on phase 1 (derivations in [learning/phase1.md](learning/phase1.md)):
   with ANSYS (P1-l) is skipped until the real input file and the ANSYS curve are available.
 - **Halved-resolution reruns:** the P1-b, P1-e, P1-h and P1-j tests also run at half the mesh size
   and/or half the time step, and assert that the result moves by less than 1/5 of the tolerance.
-- **P1-m measures the observed orders on four refinements.** The time order is measured both on an
+- **P1-m measures the observed orders on four levels (three refinements).** The time order is measured both on an
   unforced eigenmode problem and on a forced problem with a source, time-dependent Dirichlet and
   Robin conditions.
 
@@ -41,7 +41,7 @@ Notes on phase 2 (derivations in [learning/phase2.md](learning/phase2.md)):
   - (historical) The T6 L2 order came out at 3.25 (plane stress) and 3.27 (plane strain), outside 3 ± 0.15.
   - (historical) The pairwise orders, 3.53, 3.17 and 3.12, were falling toward 3. A scratch level 4 gave 3.03.
   - So level 0 is pre-asymptotic. The error-norm quadrature was checked and is not the cause.
-  - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.21
+  - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.20
     (plane strain), still outside the tolerance. The pass depends on leaving level 0 out of the fit.
   - With the user's approval, level 4 was added and the order is now fitted on levels 1 to 4, for T3
     and T6 alike. Level 0 is still computed and printed by the test.
@@ -117,15 +117,15 @@ Notes on phase 3 (derivations in [learning/phase3.md](learning/phase3.md)):
 
 Notes on phase 4 (derivations in [learning/phase4.md](learning/phase4.md)):
 
-- **Reference rows written in phase 4 (disclosed).** P4-f, P4-g and P4-h were added to REFERENCE_VALUES.md in
-  the phase-4 commit together with their tests, and the P4-c tolerance was clarified there from "1%" to
+- **Reference rows written in phase 4 (disclosed).** P4-f, P4-g and P4-h, and the plane-strain targets of P4-a and
+  P4-b, were added to REFERENCE_VALUES.md in the phase-4 commit together with their tests, and the P4-c tolerance was clarified there from "1%" to
   "1% (absolute 0.0025 where the target is 0)", since a relative tolerance is undefined for sigma_r(b) = 0.
 
 - **Thermal load.** `f_th = ∫ Bᵀ m β ΔT_h dA` with β = Eα/(1−ν) (plane stress) or Eα/(1−2ν) (plane strain).
   Stress recovery subtracts β ΔT_h m. In plane strain σ_zz = ν(σ_xx + σ_yy) − EαΔT; the case output had
   dropped the thermal term until `tests/phase4/thermal_output.cpp` caught it (derivation:
   [learning/phase4.md](learning/phase4.md)).
-- **P4-a, P4-b, P4-f (i) and (iii)** are exact for the discretisation and hold to round-off (≤ 5e-11).
+- **P4-a, P4-b, P4-f (i) and (iii)** are exact for the discretisation and hold to round-off (largest 4.24e-11).
   **P4-f (ii)**, the discrete energy balance, is an identity of the θ-scheme for any M, A, F. It checks the
   integrator's bookkeeping only. So the same test also asserts `A·(T_inf 1) = F` on a curved Robin rim with a
   face sink (5e-17), which a wrong load would fail.
@@ -135,7 +135,7 @@ Notes on phase 4 (derivations in [learning/phase4.md](learning/phase4.md)):
   construction, so **P4-h** (L2 order of the whole profile) is the real accuracy test.
 - **P4-h** uses Crank-Nicolson with dt ∝ h^((p+1)/2), so the asserted slope is the combined space-time order
   along that path. The time part is 2% of the error for T3 and about half for T6, measured on level 2 as
-  (4/3)‖T(dt) − T(dt/2)‖. A wrong spatial order would still show: T6 at 2.5 would fit about 2.6.
+  (4/3)‖T(dt) − T(dt/2)‖. A wrong spatial order would still show (a qualitative estimate): a T6 spatial order below 3 would pull the fitted slope down.
 - **P4-f (iii)** is posed in excess temperature (T_inf = 0) with k = 0.4 W/(m K). Disclosed change (historical
   numbers, phase-4 commit 3102d6d): the first run (T_inf = 300 K, k = 400) missed 1e-10 by up to 6e-6, from floating point (cancellation and a
   solve dominated by conduction) and not from discretisation.

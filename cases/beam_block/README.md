@@ -61,7 +61,7 @@ Sources:
 ## Known limit: 780 K in graphite at s = 0.5 mm
 
 With constant properties, graphite at s = 0.5 mm reaches about 780 K at the end of the pulse (the demo prints
-782 K). JANAF gives Cp = 19.83 J/(mol K) at 800 K, against 8.517 at 298.15 K: c is 2.3 times higher at 780 K.
+782 K). JANAF gives Cp = 19.83 J/(mol K) at 800 K, against 8.517 at 298.15 K: c is 2.3 times higher at 800 K.
 Integrating c(T) for the same deposit gives a temperature rise of 319 K (612 K) instead of 491 K. Constant c
 overestimates that row by 54%. The rows with s >= 1 mm (dT <= 123 K) are less affected but not exact. alpha
 and E of graphite also change with T. Temperature-dependent properties are out of scope.

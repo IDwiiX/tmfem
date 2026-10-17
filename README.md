@@ -15,7 +15,7 @@ below). Per-phase notes and disclosed changes: [docs/VALIDATION.md](docs/VALIDAT
 
 ## Results
 
-Every number below is written by the test that asserts it, into `results/validation/`, and the
+Every number below is written by the test that computes it, into `results/validation/`, and the
 table is regenerated from those files by `python3 scripts/build_results_table.py` after `ctest`. The script
 fails if any reference row of [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md) has no result, unless it is
 listed as skipped with its reason (only P1-l). The error column is relative (%) except where the tolerance is
@@ -174,8 +174,10 @@ Each change was approved before it was made. Details, and the numbers from befor
 - **P3-d:** the Newton rate is asserted on the FE bar, because on the hole plate Newton reaches round-off
   too fast for the rate criterion.
 - **P4-e:** the test runs on the finest mesh, because of a constant O(h²) interpolation offset on level 2.
-- **P4-f (iii):** the test is posed in excess temperature, to avoid floating-point cancellation.
-- **P4-c to P4-h:** the P4-f to P4-h rows were written in phase 4 together with their tests, and the P4-c
+- **P4-f (iii):** the test is posed in excess temperature with k = 0.4 instead of 400 W/(m K), to avoid
+  floating-point cancellation; the target G^n does not depend on k.
+- **P4-c to P4-h:** the P4-f to P4-h rows and the plane-strain targets of P4-a and P4-b were written in phase 4
+  together with their tests, and the P4-c
   tolerance was clarified to an absolute 0.0025 where the target is zero.
 - **CI:** `ubuntu-24.04` instead of `ubuntu-latest`, because the build requires Gmsh 4.12.1.
 - **P1-l** (comparison with ANSYS) is skipped until the real input file and the ANSYS curve are provided.

@@ -1,4 +1,6 @@
 build/
+# Generated from cases/*/*.geo by scripts/make_meshes.sh, which the build runs (cmake/Meshes.cmake).
+*.msh
 results/
 references/original/
 __pycache__/

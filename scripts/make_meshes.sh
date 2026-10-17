@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
-# Regenerates every committed .msh file from its .geo (Gmsh 4.12.1, ASCII msh 4.1).
-# Run from anywhere:  bash scripts/make_meshes.sh
+# Generates every .msh file from its .geo (Gmsh 4.12.1, ASCII msh 4.1). The .msh files are not committed
+# (.gitignore); the build runs this script (cmake/Meshes.cmake). Run from anywhere:  bash scripts/make_meshes.sh
+# GMSH overrides the gmsh executable.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXPECTED="4.12.1"
-VERSION="$(gmsh --version 2>&1 | tail -n 1)"
+GMSH="${GMSH:-gmsh}"
+VERSION="$("$GMSH" --version 2>&1 | tail -n 1)"
 if [[ "$VERSION" != "$EXPECTED" ]]; then
   echo "make_meshes.sh: Gmsh $EXPECTED expected, found $VERSION (meshes would differ)" >&2
   exit 1
 fi
 
 mesh() {  # geo order clscale output
-  gmsh "$1" -2 -order "$2" -clscale "$3" -format msh41 -v 2 -o "$4" > /dev/null
+  mkdir -p "$(dirname "$4")"
+  "$GMSH" "$1" -2 -order "$2" -clscale "$3" -format msh41 -v 2 -o "$4" > /dev/null
   echo "wrote ${4#"$ROOT"/}"
 }
 
@@ -42,8 +45,9 @@ for level in 0 1 2 3 4; do
 done
 
 # Beam-heated block demo (D4): one T6 mesh per beam size s (mm).
+mkdir -p "$ROOT/cases/beam_block/msh"
 for s_mm in 0.5 1 2 4; do
-  gmsh "$ROOT/cases/beam_block/block.geo" -2 -order 2 -setnumber s_mm "$s_mm" -format msh41 -v 2 \
+  "$GMSH" "$ROOT/cases/beam_block/block.geo" -2 -order 2 -setnumber s_mm "$s_mm" -format msh41 -v 2 \
     -o "$ROOT/cases/beam_block/msh/block_s${s_mm}.msh" > /dev/null
   echo "wrote cases/beam_block/msh/block_s${s_mm}.msh"
 done

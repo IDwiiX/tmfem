@@ -6,14 +6,16 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned: the meshes are generated during the build and scripts/make_meshes.sh requires Gmsh 4.12.1,
+    # the version Ubuntu 24.04 ships.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libeigen3-dev
+          sudo apt-get install -y --no-install-recommends libeigen3-dev gmsh
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DTMFEM_WARNINGS_AS_ERRORS=ON

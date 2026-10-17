@@ -22,6 +22,7 @@ include(Warnings)
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 include(Json)
+include(Meshes)
 
 add_subdirectory(src)
 

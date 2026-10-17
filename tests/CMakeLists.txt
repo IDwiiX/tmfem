@@ -6,6 +6,7 @@ function(tmfem_add_phase_tests phase)
   set(exe tests_${phase})
   add_executable(${exe} ${ARG_SOURCES})
   target_link_libraries(${exe} PRIVATE tmfem_core Catch2::Catch2WithMain)
+  add_dependencies(${exe} meshes)  # cmake/Meshes.cmake
   target_include_directories(${exe} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_compile_definitions(${exe} PRIVATE TMFEM_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
   tmfem_set_warnings(${exe})

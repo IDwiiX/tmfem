@@ -249,7 +249,7 @@ against the Abaqus values 0.03158 and $-0.01535$. The check is nearly tautologic
 $\varepsilon_{yy}$, since 457.24~MPa is a data point. The lateral strain is the informative part:
 $-\nu\sigma/E$ elastic plus $-\alpha/2$ plastic. With Ludwik hardening (\refrow{P3-c}) the driver
 follows the data within \NPcZ{} residual standard deviations. This band is a weak test: with eight
-points and three parameters no residual can exceed $\sqrt5\,s \approx 2.24\,s$.
+points and three parameters no residual can exceed $\sqrt{\NFitDof}\,s = \NBandMax\,s$.
 
 \emph{Newton convergence} (\refrow{P3-d}). The observed rate in the last iterations of a load step is
 \NPdRatePe{} (plane strain) and \NPdRatePs{} (plane stress) on the uniform FE bar with Ludwik hardening.
@@ -313,7 +313,7 @@ targets are the recomputed values.
     P1-a & steady flux $J$ & \SI{2.4e-12}{kg/(m^2.s)} & \SI{2.4e-9}{kg/(m^2.s)} & mm not converted \\
     P1-b & time to 0.8~wt\% & 7.025~h & 7.047~h & erf table interpolation \\
     P1-f & surface concentration & \SI{2.8e19}{cm^{-3}} & \SI{6.97e19}{cm^{-3}} & value matches $t = 36$~min \\
-    P1-d & $D(\SI{1000}{K})$, $D(\SI{800}{K})$ & \SI{2.04e-13}{m^2/s}, \SI{2.11e-15}{m^2/s} & \SI{2.067e-13}{m^2/s}, \SI{2.140e-15}{m^2/s} & not identified (1.3--1.4\,\%) \\
+    P1-d & $D(\SI{1000}{K})$, $D(\SI{800}{K})$ & \SI{2.04e-13}{m^2/s}, \SI{2.11e-15}{m^2/s} & \SI{2.067e-13}{m^2/s}, \SI{2.140e-15}{m^2/s} & not identified \\
     P1-g & $D_0$, $D(\SI{1300}{\celsius})$ & \SI{3.2}{m^2/s}, \SI{5.86e-11}{m^2/s} & \SI{3.11}{cm^2/s}, \SI{1.74e-11}{cm^2/s} & unit slip ($D_0$); $D(\SI{1300}{\celsius})$ not identified \\
     P1-k & through-thickness $\Delta T$ & $<\SI{0.01}{K}$ & \SI{0.0255}{K} & infeasible for a 48~K swing \\
     P2-e & $\sigma_{rr}$ at $r = 1.5a$, $\theta = 0$ & 2100~MPa & 25.93~MPa & wrong table entry \\

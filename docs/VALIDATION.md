@@ -38,8 +38,8 @@ Notes on phase 2 (derivations in [learning/phase2.md](learning/phase2.md)):
   levels (`-clscale` 1 to 1/16), with curved T6 edges on the hole. "Finest" means level 4.
 - **P2-f, disclosed change:** the first run fitted levels 0 to 3, with level 4 not yet generated. The numbers in
   this item are historical: they come from runs before the change (phase-2 commit 182f3da) and are not regenerated.
-  - The T6 L2 order came out at 3.25 (plane stress) and 3.27 (plane strain), outside 3 ± 0.15.
-  - The pairwise orders, 3.53, 3.17 and 3.12, were falling toward 3. A scratch level 4 gave 3.03.
+  - (historical) The T6 L2 order came out at 3.25 (plane stress) and 3.27 (plane strain), outside 3 ± 0.15.
+  - (historical) The pairwise orders, 3.53, 3.17 and 3.12, were falling toward 3. A scratch level 4 gave 3.03.
   - So level 0 is pre-asymptotic. The error-norm quadrature was checked and is not the cause.
   - Adding level 4 alone is not enough: a fit over all five levels gives 3.19 (plane stress) and 3.21
     (plane strain), still outside the tolerance. The pass depends on leaving level 0 out of the fit.

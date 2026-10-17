@@ -14,6 +14,7 @@ Outputs:
 Run after ctest -V and the demo cases:  python3 scripts/report_numbers.py
 Any missing input or unmatched log pattern is an error, so a renamed printf cannot silently drop a number.
 """
+import bisect
 import csv
 import glob
 import json
@@ -290,6 +291,10 @@ def demo_numbers(N):
         N.add(name, 100 * float(row["vm_centre_MPa"]) / vm0, os.path.relpath(hist_path, ROOT),
               f"von Mises at the centre at t = {t_s:g} s / end of pulse", sig=2, unit="%")
     janaf_numbers(N, mats["graphite"], sweep["graphite"][0.5])
+    tensile = os.path.join(ROOT, "references", "data", "tensile_true.csv")
+    first = next(r for r in read_csv_commented(tensile) if float(r["eps_true"]) > 0)
+    N.add("TensileSlope", float(first["sigma_true_MPa"]) / float(first["eps_true"]) / 1e3,
+          "references/data/tensile_true.csv", "digitised elastic slope sigma/eps of the first data point [GPa]", sig=3)
 
 
 def janaf_numbers(N, mat, row):
@@ -428,6 +433,58 @@ def readme_blocks(N):
         f.write(text)
 
 
+VALIDATION = os.path.join(ROOT, "docs", "VALIDATION.md")
+NUM = re.compile(r"(?<![\w.])[-+−]?\d+(?:\.\d+)?(?:e[-+]?\d+)?(?![\w.])")
+
+
+def corpus_values(N):
+    """Every number in the outputs and inputs a quoted number may come from."""
+    paths = [LOG, os.path.join(ROOT, "docs", "REFERENCE_VALUES.md"), os.path.join(ROOT, "cases", "beam_block", "README.md")]
+    paths += glob.glob(os.path.join(RESULTS, "validation", "*.csv")) + glob.glob(os.path.join(ROOT, "cases", "**", "*.json"), recursive=True)
+    paths += glob.glob(os.path.join(ROOT, "references", "data", "*")) + glob.glob(os.path.join(DEMO, "*", "*.csv"))
+    vals = []
+    for path in paths:
+        with open(path, errors="replace") as f:
+            vals += [float(t.replace("−", "-")) for t in NUM.findall(f.read())]
+    vals += [float(plain) for _, plain, _, _, _ in N.items]
+    return sorted(set(abs(v) for v in vals))
+
+
+def matches(token, values):
+    """True if some source value rounds to the quoted token (same printed precision), as a value or a percentage."""
+    x = abs(float(token.replace("−", "-")))
+    mant = token.lower().split("e")[0]
+    decimals = len(mant.split(".")[1]) if "." in mant else 0
+    exp = int(token.lower().split("e")[1]) if "e" in token.lower() else 0
+    half = 0.5 * 10 ** (exp - decimals) * (1 + 1e-9)
+    for scale in (1.0, 100.0, 0.01):
+        lo, hi = (x - half) / scale, (x + half) / scale
+        i = bisect.bisect_left(values, lo)
+        if i < len(values) and values[i] <= hi:
+            return True
+    return False
+
+
+def check_validation_notes(N):
+    """Every number in docs/VALIDATION.md must come from a test, case output, input or reference value, unless its
+    paragraph is labelled historical (a run before a disclosed change). Small integers (counts, levels) are exempt."""
+    values = corpus_values(N)
+    with open(VALIDATION) as f:
+        paragraphs = re.split(r"\n(?=\s*[-|]|\s*$)", f.read())
+    missing = []
+    for par in paragraphs:
+        if "historical" in par or "](" in par and not NUM.search(re.sub(r"\]\([^)]*\)", "", par)):
+            continue
+        text = re.sub(r"\]\([^)]*\)|`[^`]*`|\(docs/[^)]*\)", "", par)
+        for token in NUM.findall(text):
+            t = token.lstrip("+")
+            if "." not in t and "e" not in t.lower() and abs(float(t.replace("−", "-"))) < 100:
+                continue
+            if not matches(t, values):
+                missing.append((t, par.strip().splitlines()[0][:70]))
+    return missing
+
+
 def main():
     rows = validation_rows()
     lines = read_log()
@@ -440,6 +497,11 @@ def main():
     write_results_table(rows, head)
     write_provenance(N, head)
     readme_blocks(N)
+    missing = check_validation_notes(N)
+    if missing:
+        for t, where in missing:
+            print(f"  untraced in docs/VALIDATION.md: {t}   [{where}]")
+        raise SystemExit(f"{len(missing)} numbers in docs/VALIDATION.md have no source")
     print(f"wrote {len(N.items)} numbers, results table ({len({r['id'] for r in rows})} IDs) and {PROVENANCE}")
 
 

@@ -14,17 +14,27 @@ add_library(tmfem_core STATIC
   mechanics/stress_recovery.cpp
   mechanics/error_norms.cpp
   mechanics/kirsch_analytic.cpp
+  mechanics/constitutive.cpp
+  mechanics/hardening.cpp
+  mechanics/j2_plasticity.cpp
+  mechanics/plane_reduction.cpp
+  mechanics/material_point.cpp
+  mechanics/elastoplastic2d.cpp
+  mechanics/tensile_fit.cpp
+  mechanics/neuber.cpp
   thermal/heat1d.cpp
   thermal/theta_integrator.cpp
   thermal/diffusion_analytic.cpp
   thermal/arrhenius.cpp
   thermal/lumped_plate.cpp
   io/timeseries.cpp
+  io/csv_reader.cpp
   io/csv_writer.cpp
   io/json_file.cpp
   io/case_heat1d.cpp
   io/vtu_writer.cpp
-  io/case_elastic2d.cpp)
+  io/case_elastic2d.cpp
+  io/case_elastoplastic2d.cpp)
 target_include_directories(tmfem_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(tmfem_core PUBLIC Eigen3::Eigen nlohmann_json::nlohmann_json)
 target_compile_definitions(tmfem_core PRIVATE TMFEM_VERSION_STRING="${PROJECT_VERSION}")

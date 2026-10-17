@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,11 @@ struct Elastic2DSolution {
 
 Eigen::SparseMatrix<double> assemble_stiffness(const Elastic2DProblem& p);
 Eigen::VectorXd assemble_traction_load(const Elastic2DProblem& p);
+Eigen::VectorXd assemble_traction_load(const Mesh& mesh, const std::vector<TractionBC>& tractions);
+
+// Constrained dofs (2 node + component) and their values, in increasing dof order. Throws if a dof
+// shared by two conditions gets two different values.
+std::map<int, double> collect_dirichlet(const Mesh& mesh, const std::vector<DisplacementBC>& displacements);
 
 // Assembles, eliminates the Dirichlet dofs and solves with SimplicialLDLT. Throws if the
 // constraints leave a rigid-body mode (a pivot below 1e-10 of the largest).

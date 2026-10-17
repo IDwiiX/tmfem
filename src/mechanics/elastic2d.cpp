@@ -17,13 +17,14 @@ namespace {
 // meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
 constexpr double kMinRelativePivot = 1e-10;
 
-// Constrained dofs and their values, in increasing dof order. A dof named twice must get the same value.
-std::map<int, double> collect_dirichlet(const Elastic2DProblem& p) {
+}  // namespace
+
+std::map<int, double> collect_dirichlet(const Mesh& mesh, const std::vector<DisplacementBC>& displacements) {
   std::map<int, double> values;
-  for (const DisplacementBC& bc : p.displacements) {
+  for (const DisplacementBC& bc : displacements) {
     if (bc.component != 0 && bc.component != 1) throw std::invalid_argument("DisplacementBC: component must be 0 or 1");
-    for (const int node : p.mesh.nodes_of(bc.physical)) {
-      const double v = bc.value_m(p.mesh.x_m.row(node).transpose());
+    for (const int node : mesh.nodes_of(bc.physical)) {
+      const double v = bc.value_m(mesh.x_m.row(node).transpose());
       const int dof = 2 * node + bc.component;
       const auto [it, inserted] = values.emplace(dof, v);
       if (!inserted && std::abs(it->second - v) > 1e-14 * (1.0 + std::abs(v))) {
@@ -34,18 +35,18 @@ std::map<int, double> collect_dirichlet(const Elastic2DProblem& p) {
   return values;
 }
 
-}  // namespace
-
 Eigen::SparseMatrix<double> assemble_stiffness(const Elastic2DProblem& p) {
   const Eigen::Matrix3d D = p.D();
   return assemble_matrix(p.mesh, p.mesh.blocks_of(p.region), 2,
                          [&D](CellType type, const Eigen::MatrixXd& x_e) { return element_stiffness(type, x_e, D); });
 }
 
-Eigen::VectorXd assemble_traction_load(const Elastic2DProblem& p) {
-  Eigen::VectorXd f = Eigen::VectorXd::Zero(2 * p.mesh.n_nodes());
-  for (const TractionBC& bc : p.tractions) {
-    assemble_vector(p.mesh, p.mesh.blocks_of(bc.physical), 2,
+Eigen::VectorXd assemble_traction_load(const Elastic2DProblem& p) { return assemble_traction_load(p.mesh, p.tractions); }
+
+Eigen::VectorXd assemble_traction_load(const Mesh& mesh, const std::vector<TractionBC>& tractions) {
+  Eigen::VectorXd f = Eigen::VectorXd::Zero(2 * mesh.n_nodes());
+  for (const TractionBC& bc : tractions) {
+    assemble_vector(mesh, mesh.blocks_of(bc.physical), 2,
                     [&bc](CellType type, const Eigen::MatrixXd& x_e) {
                       return edge_traction_load(type, x_e, bc.traction_Pa);
                     },
@@ -57,7 +58,7 @@ Eigen::VectorXd assemble_traction_load(const Elastic2DProblem& p) {
 Elastic2DSolution solve_elastic2d(const Elastic2DProblem& p) {
   const Eigen::SparseMatrix<double> K = assemble_stiffness(p);
   const Eigen::VectorXd f = assemble_traction_load(p);
-  const std::map<int, double> bc = collect_dirichlet(p);
+  const std::map<int, double> bc = collect_dirichlet(p.mesh, p.displacements);
 
   std::vector<int> constrained;
   Eigen::VectorXd g(static_cast<Eigen::Index>(bc.size()));

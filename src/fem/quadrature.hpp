@@ -21,7 +21,8 @@ struct QuadRuleTri {
   std::vector<double> w;
 };
 
-// Stiffness rules (docs/learning/phase2.md section 6): 1 point (degree 1) or 3 points (degree 2).
+// Stiffness rules (docs/learning/phase2.md section 6): 1 point (degree 1) or 3 points (degree 2); and the
+// 6-point degree-4 rule for nonlinear residuals (docs/learning/phase3.md section 9).
 QuadRuleTri triangle_rule(int n_points);
 
 // Collapsed (Duffy) Gauss rule with n x n points, xi = u, eta = v (1 - u), built from gauss_legendre(n).

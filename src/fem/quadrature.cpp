@@ -44,8 +44,16 @@ QuadRuleTri triangle_rule(int n_points) {
       return {{Eigen::Vector2d(1.0 / 6.0, 1.0 / 6.0), Eigen::Vector2d(2.0 / 3.0, 1.0 / 6.0),
                Eigen::Vector2d(1.0 / 6.0, 2.0 / 3.0)},
               {1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0}};
+    case 6: {
+      // Strang-Fix / Dunavant degree-4 rule; weights for unit area, halved for the reference triangle.
+      const double a = 0.445948490915965, wa = 0.5 * 0.223381589678011;
+      const double b = 0.091576213509771, wb = 0.5 * 0.109951743655322;
+      return {{Eigen::Vector2d(a, a), Eigen::Vector2d(1.0 - 2.0 * a, a), Eigen::Vector2d(a, 1.0 - 2.0 * a),
+               Eigen::Vector2d(b, b), Eigen::Vector2d(1.0 - 2.0 * b, b), Eigen::Vector2d(b, 1.0 - 2.0 * b)},
+              {wa, wa, wa, wb, wb, wb}};
+    }
     default:
-      throw std::invalid_argument("triangle_rule: n_points must be 1 or 3");
+      throw std::invalid_argument("triangle_rule: n_points must be 1, 3 or 6");
   }
 }
 

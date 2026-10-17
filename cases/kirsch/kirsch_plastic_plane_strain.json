@@ -1,0 +1,18 @@
+{
+  "case_type": "elastoplastic2d",
+  "description": "Elastoplastic Kirsch plate, plane strain, tabulated hardening, remote 140 MPa in 28 steps, T6 level 3, elastic Kirsch tractions (docs/learning/phase3.md section 12; P3-f)",
+  "mesh": "cases/kirsch/msh/kirsch_t6_l3.msh",
+  "material": {"E_GPa": 207.423, "nu": 0.3},
+  "plane": "plane_strain",
+  "region": "domain",
+  "hardening": {"type": "tabulated", "csv": "references/data/tensile_true.csv", "sigma_start_MPa": 310.5611},
+  "load_steps": 28,
+  "boundary_conditions": [
+    {"physical": "sym_x", "type": "displacement", "component": "x", "value_m": 0.0},
+    {"physical": "sym_y", "type": "displacement", "component": "y", "value_m": 0.0},
+    {"physical": "outer_right", "type": "kirsch_traction", "S_MPa": 140.0, "a_m": 0.010, "normal": [1.0, 0.0]},
+    {"physical": "outer_top", "type": "kirsch_traction", "S_MPa": 140.0, "a_m": 0.010, "normal": [0.0, 1.0]}
+  ],
+  "output_vtu": "results/kirsch/kirsch_plastic_plane_strain.vtu",
+  "output_gauss_csv": "results/kirsch/kirsch_plastic_plane_strain_gauss.csv"
+}

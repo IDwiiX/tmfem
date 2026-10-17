@@ -7,6 +7,7 @@ The table replaces the text between the results markers in README.md.
 """
 import csv
 import glob
+import math
 import os
 import re
 
@@ -34,6 +35,12 @@ BENCHMARK = {
     "P2-d": "Kirsch plate, r/a = 2 and 4",
     "P2-e": "Kirsch plate, r/a = 1.5",
     "P2-f": "Kirsch convergence orders",
+    "P3-a": "Ludwik fit to the true tensile curve",
+    "P3-b": "Material point, uniaxial, tabulated hardening",
+    "P3-c": "Material point, Ludwik along the true curve",
+    "P3-d": "Newton convergence rate",
+    "P3-e": "Plane-strain bar FE vs material point",
+    "P3-f": "Elastoplastic hole plate, S = 140 MPa (report only)",
 }
 
 
@@ -43,14 +50,21 @@ def id_key(row):
 
 
 def fmt(v):
-    return f"{float(v):.6g}"
+    v = float(v)
+    return "n/a" if math.isnan(v) else f"{v:.6g}"
 
 
 def error_text(row):
+    """Error against the reference. Report-only rows compare with a value that is not a target (an
+    estimate or the source's parameters), so their difference is shown in parentheses; no reference: n/a."""
     ref, val = float(row["reference"]), float(row["tmfem"])
+    if math.isnan(ref):
+        return "n/a"
     if ref == 0.0 or "+/-" in row["tolerance"] or row["tolerance"].endswith(" K"):
-        return f"{val - ref:+.3g}"
-    return f"{(val - ref) / abs(ref) * 100:+.3g}%"
+        text = f"{val - ref:+.3g}"
+    else:
+        text = f"{(val - ref) / abs(ref) * 100:+.3g}%"
+    return f"({text})" if row["tolerance"] == "report only" else text
 
 
 def main():

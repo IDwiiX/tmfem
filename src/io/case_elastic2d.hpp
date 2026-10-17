@@ -1,6 +1,10 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
+#include <vector>
+
+#include <nlohmann/json.hpp>
 
 #include "mechanics/elastic2d.hpp"
 
@@ -22,5 +26,11 @@ Elastic2DCase load_elastic2d_case(const std::filesystem::path& json_path, const 
 
 // Solves and writes the VTU (u in m, stresses and von Mises in MPa, nodal averages) and a nodal CSV.
 void run_elastic2d_case(const Elastic2DCase& c);
+
+// Shared with the elastoplastic case: "plane_stress" / "plane_strain", and one boundary-condition object
+// (types above), converted to SI and appended to the matching list.
+PlaneCondition plane_condition(const std::string& s);
+void add_boundary_condition(const nlohmann::json& j, std::vector<DisplacementBC>& displacements,
+                            std::vector<TractionBC>& tractions);
 
 }  // namespace tmfem

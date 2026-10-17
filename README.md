@@ -5,11 +5,13 @@ von Mises elastoplasticity and one-way thermo-mechanical coupling. Every capabil
 validation test against an analytical solution or a reference result. It is a learning and validation
 project; it does not replace ANSYS or Abaqus.
 
-**Status:** phases 1 and 2 of 5 validated:
+**Status:** phases 1 to 3 of 5 validated:
 - 1D transient heat conduction and diffusion
 - 2D linear elasticity with T3/T6 triangles, plane stress and plane strain
+- small-strain von Mises plasticity with isotropic hardening (tabulated and Ludwik): radial return,
+  consistent tangent, global Newton with load stepping, plane strain and plane stress
 
-Plasticity and thermo-mechanical coupling are not built yet.
+Thermo-mechanical coupling is not built yet.
 
 ## Results
 
@@ -17,8 +19,10 @@ Every number below is written by the test that asserts it, into `results/validat
 table is regenerated from those files by `python3 scripts/build_results_table.py` after `ctest`.
 Reference IDs and tolerances are defined in [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md).
 The error column is relative (%) except where the tolerance is absolute or the reference is zero.
+Report-only rows are compared with a value that is not a target, such as an estimate or the source's
+parameters. Their difference is shown in parentheses, and "n/a" marks rows with no comparison value.
 
-### Phases 1 and 2
+### Phases 1 to 3
 
 <!-- results:begin -->
 | ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |
@@ -67,6 +71,40 @@ The error column is relative (%) except where the tolerance is absolute or the r
 | P2-f | Kirsch convergence orders | T6 plane strain energy order (levels 1-4) | 2 | 1.96535 | -0.0346 | +/- 0.15 | `P2-f Kirsch convergence T6` |
 | P2-f | Kirsch convergence orders | T6 plane stress L2 order (levels 1-4) | 3 | 3.10864 | +0.109 | +/- 0.15 | `P2-f Kirsch convergence T6` |
 | P2-f | Kirsch convergence orders | T6 plane stress energy order (levels 1-4) | 2 | 1.97369 | -0.0263 | +/- 0.15 | `P2-f Kirsch convergence T6` |
+| P3-a | Ludwik fit to the true tensile curve | LSQ K [MPa], 95% CI +/- 39.23, jackknife SE 49.82 (reference = source) | 559.27 | 520.875 | (-6.87%) | report only | `P3-a Ludwik least-squares fit with uncertainty` |
+| P3-a | Ludwik fit to the true tensile curve | LSQ m, 95% CI +/- 0.03985, jackknife SE 0.1269 (reference = source) | 0.4077 | 0.361757 | (-11.3%) | report only | `P3-a Ludwik least-squares fit with uncertainty` |
+| P3-a | Ludwik fit to the true tensile curve | LSQ residual standard deviation s [MPa] | n/a | 4.57928 | n/a | report only | `P3-a Ludwik least-squares fit with uncertainty` |
+| P3-a | Ludwik fit to the true tensile curve | LSQ sigma_y0 [MPa], 95% CI +/- 11.66, jackknife SE 101.7 (reference = source) | 310.862 | 309.135 | (-0.555%) | report only | `P3-a Ludwik least-squares fit with uncertainty` |
+| P3-a | Ludwik fit to the true tensile curve | log-log K [MPa] (sigma_y fixed) | 548 | 547.608 | -0.0715% | 0.5% | `P3-a Ludwik log-log fit with fixed sigma_y` |
+| P3-a | Ludwik fit to the true tensile curve | log-log m (sigma_y fixed) | 0.385 | 0.384864 | -0.0353% | 0.5% | `P3-a Ludwik log-log fit with fixed sigma_y` |
+| P3-a | Ludwik fit to the true tensile curve | source m vs our log-log m (report only) | 0.4077 | 0.384864 | (-5.6%) | report only | `P3-a Ludwik log-log fit with fixed sigma_y` |
+| P3-b | Material point, uniaxial, tabulated hardening | eps_xx at 457.24 MPa | -0.01535 | -0.0153496 | +0.00246% | 0.5% | `P3-b uniaxial strains at 457.24 MPa, tabulated hardening` |
+| P3-b | Material point, uniaxial, tabulated hardening | eps_yy at 457.24 MPa | 0.03158 | 0.031581 | +0.00317% | 0.5% | `P3-b uniaxial strains at 457.24 MPa, tabulated hardening` |
+| P3-b | Material point, uniaxial, tabulated hardening | eps_zz at 457.24 MPa | -0.01535 | -0.0153496 | +0.00246% | 0.5% | `P3-b uniaxial strains at 457.24 MPa, tabulated hardening` |
+| P3-c | Material point, Ludwik along the true curve | max |driver - data| / s, LSQ Ludwik, 7 points | 0 | 1.5942 | +1.59 | +/- 2 s | `P3-c Ludwik material point along the true curve` |
+| P3-d | Newton convergence rate | Newton rate, last qualifying triple, plane-strain bar, Ludwik | 2 | 2.12018 | +6.01% | >= 1.8 | `P3-d Newton convergence rate on the plane-strain bar` |
+| P3-d | Newton convergence rate | Newton rate, last qualifying triple, plane-stress bar, Ludwik | 2 | 2.61767 | +30.9% | >= 1.8 | `P3-d Newton convergence rate on the plane-stress bar` |
+| P3-e | Plane-strain bar FE vs material point | max relative difference FE vs driver (T3, T6, tabulated, Ludwik) | 0 | 1.11596e-12 | +1.12e-12 | 1e-6 relative | `P3-e plane-strain bar FE equals material-point driver` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 3: hole-edge eps_yy | n/a | 0.0019402 | n/a | report only | `P3-f elastoplastic hole plate, plane strain (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 3: max alpha (at the edge) | n/a | 0.000407141 | n/a | report only | `P3-f elastoplastic hole plate, plane strain (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 3: max sigma_yy in the field [MPa], at r = 1.074 a | n/a | 371.569 | n/a | report only | `P3-f elastoplastic hole plate, plane strain (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 3: plastic zone extent (r - a) / a | n/a | 0.0735324 | n/a | report only | `P3-f elastoplastic hole plate, plane strain (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 3: sigma_yy at the point nearest the edge [MPa] | n/a | 358.096 | n/a | report only | `P3-f elastoplastic hole plate, plane strain (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 4: hole-edge eps_yy | n/a | 0.00193939 | n/a | report only | `P3-f elastoplastic hole plate, plane strain, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 4: max alpha (at the edge) | n/a | 0.000411336 | n/a | report only | `P3-f elastoplastic hole plate, plane strain, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 4: max sigma_yy in the field [MPa], at r = 1.075 a | n/a | 371.746 | n/a | report only | `P3-f elastoplastic hole plate, plane strain, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 4: plastic zone extent (r - a) / a | n/a | 0.0748925 | n/a | report only | `P3-f elastoplastic hole plate, plane strain, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane strain, T6 level 4: sigma_yy at the point nearest the edge [MPa] | n/a | 357.93 | n/a | report only | `P3-f elastoplastic hole plate, plane strain, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 3: hole-edge eps_yy (reference = Neuber) | 0.00264675 | 0.0023565 | (-11%) | report only | `P3-f elastoplastic hole plate, plane stress (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 3: max alpha (at the edge) (reference = Neuber) | 0.00109767 | 0.000811179 | (-26.1%) | report only | `P3-f elastoplastic hole plate, plane stress (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 3: max sigma_yy in the field [MPa], at r = 1.175 a | n/a | 331.13 | n/a | report only | `P3-f elastoplastic hole plate, plane stress (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 3: plastic zone extent (r - a) / a | n/a | 0.174643 | n/a | report only | `P3-f elastoplastic hole plate, plane stress (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 3: sigma_yy at the point nearest the edge [MPa] (reference = Neuber) | 321.314 | 318.749 | (-0.798%) | report only | `P3-f elastoplastic hole plate, plane stress (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: hole-edge eps_yy (reference = Neuber) | 0.00264675 | 0.00235585 | (-11%) | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: max alpha (at the edge) (reference = Neuber) | 0.00109767 | 0.000815221 | (-25.7%) | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: max sigma_yy in the field [MPa], at r = 1.174 a | n/a | 331.231 | n/a | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: plastic zone extent (r - a) / a | n/a | 0.174059 | n/a | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
+| P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: sigma_yy at the point nearest the edge [MPa] (reference = Neuber) | 321.314 | 318.675 | (-0.821%) | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
 <!-- results:end -->
 
 Notes:
@@ -116,6 +154,66 @@ Notes on phase 2 (derivations in [docs/learning/phase2.md](docs/learning/phase2.
 | ![Kirsch plate von Mises stress](docs/figures/phase2_kirsch_von_mises.png) | ![Kirsch profiles vs exact](docs/figures/phase2_kirsch_profiles.png) |
 | ![Kirsch convergence orders](docs/figures/phase2_convergence.png) | |
 
+Notes on phase 3 (derivations in [docs/learning/phase3.md](docs/learning/phase3.md)):
+- **Material data:**
+  - E = 207.423 GPa and ν = 0.3.
+  - The tabulated hardening curve is `references/data/tensile_true.csv` from the yield point
+    (310.56 MPa) on, with α = ε − σ/E. The first α comes out at −3.2e-6 because the digitised elastic
+    slope is 210 GPa, and is clipped to 0.
+  - The Ludwik source parameters are 310.86 MPa, 559.27 MPa and 0.4077.
+- **P3-a, the fit:**
+  - The log-log fit with σ_y fixed reproduces the reference (m = 0.385, K = 548 MPa).
+  - The deliverable is a 3-parameter least-squares fit on stress: σ_y0 = 309.1 ± 11.7 MPa,
+    K = 520.9 ± 39.2 MPa, m = 0.362 ± 0.040 (95% intervals, covariance, 5 dof). The source values are
+    in the table next to these.
+  - The leave-one-out jackknife gives much larger standard errors (102 MPa, 50 MPa, 0.13).
+    Without the yield point σ_y0 drops to 193 MPa: no data lie between εᵖ = 0 and 0.0086, so one point
+    fixes the knee. That is a limit of the 8-point data set, not of the solver.
+- **P3-b is nearly tautological.** 457.24 MPa is a data point, and the tabulated law passes through it,
+  so ε_yy is a round trip. The informative check is the lateral strain: −νσ/E elastic plus −α/2
+  plastic (incompressibility).
+- **P3-d, disclosed change.**
+  - The plan asserted the Newton rate on the Kirsch plate (T6 level 2, plane strain, one step from 100
+    to 140 MPa).
+  - With a consistent tangent, Newton went from 1.9e-6 to 1.4e-10 to the 7e-14 round-off floor once
+    the plastic set settled. That left too few iterates for the pre-fixed rate criterion: no qualifying
+    triple.
+  - With the user's approval, the rate is asserted on the FE bar, where the active set is fixed by
+    construction. The criterion is unchanged. The hole-plate sequence is still printed and plotted.
+  - The bar is uniform, so this rate checks the tangent along the loading path: it amounts to a scalar
+    Newton on σ_yy(ε_yy). It still fails with a continuum tangent.
+  - The full global tangent is checked separately. The test "Global tangent matches finite differences of
+    the internal force" compares K_T·v with a central difference of f_int on a non-uniform plastic
+    Kirsch state, to 1e-6.
+- **P3-c, the ±2s band is a weak test for the least-squares fit:** with 8 points and 3 parameters, no
+  residual can exceed √5·s = 2.24s. The source's Ludwik parameters miss the band at 3 of the 7 points
+  (−2.95s, −2.99s, −2.26s). This is printed by the test, not asserted.
+- **P3-f is a report, not a validation.**
+  - Set-up: the quarter Kirsch model with the elastic Kirsch tractions on the 5a boundary (an
+    approximation once a plastic zone exists), tabulated hardening, and 28 load steps.
+  - Plane stress is the thin plate of the source's Abaqus model. On T6 level 3, at the notch root, FE
+    against Neuber's estimate gives:
+
+    | Quantity | FE | Neuber | Difference |
+    | --- | --- | --- | --- |
+    | edge strain ε_yy | 0.002357 | 0.002647 | −11% |
+    | equivalent plastic strain | 0.000811 | 0.001098 | −26% |
+    | stress at the point nearest the edge | 318.7 MPa | 321.3 MPa | −0.8% |
+
+    The level-4 values are in the table. Neuber overestimating the strain is the usual direction.
+  - The largest σ_yy in the field (331 MPa) is not at the root: it sits at the plastic-zone boundary,
+    r ≈ 1.17a, where σ_xx > 0.
+  - The plastic-zone extent is 0.159a, 0.167a, 0.175a and 0.174a on levels 1 to 4: +4.6% from level 2 to 3,
+    then −0.3% from level 3 to 4.
+  - In plane strain the notch root is biaxial (σ_zz ≈ 124 MPa), so uniaxial Neuber does not apply and
+    is listed only for comparison.
+  - The level-4 rows come from tests tagged `slow`.
+
+| | |
+| --- | --- |
+| ![Ludwik fits and the uniaxial material point](docs/figures/phase3_tensile_fit.png) | ![Newton residual histories](docs/figures/phase3_newton_history.png) |
+| ![Plastic zone at the hole edge](docs/figures/phase3_plastic_zone.png) | |
+
 ## Build and test
 
 Requires a C++17 compiler, CMake >= 3.16 and Eigen 3 (`sudo apt install libeigen3-dev`).
@@ -137,7 +235,11 @@ Run a case from the repository root (paths inside case files are relative to it)
 python3 scripts/plot_phase1.py                       # phase 1 figures, after ctest -L phase1
 ./build/src/tmfem cases/kirsch/kirsch_t6.json        # writes results/kirsch/kirsch_t6.vtu (ParaView)
 python3 scripts/plot_phase2.py                       # phase 2 figures, after the case and ctest -L phase2
+./build/src/tmfem cases/kirsch/kirsch_plastic_plane_stress.json  # elastoplastic plate: VTU + quadrature-point CSV
+python3 scripts/plot_phase3.py                       # phase 3 figures, after ctest -L phase3
 ```
+
+The two level-4 elastoplastic plate tests take a few minutes each. Skip them with `ctest -LE slow`.
 
 The `.msh` files are committed. `bash scripts/make_meshes.sh` regenerates them and needs Gmsh 4.12.1.
 
@@ -167,6 +269,15 @@ Phase 2 (2D linear elasticity):
   source's Abaqus model.
 - **Mesh dependence:** another Gmsh version would produce slightly different meshes, and so slightly
   different numbers.
+
+Phase 3 (elastoplasticity):
+- **Small strain, isotropic hardening only:** there is no kinematic hardening, so no Bauschinger effect.
+  The model is rate-independent and isothermal.
+- **The hole plate uses elastic Kirsch tractions** on the 5a boundary. Hole-edge stresses come from the
+  nearest quadrature point, and the edge strain comes from the displacement field.
+- **Tabulated hardening has slope jumps** at the data points, so quadratic Newton convergence is
+  asserted with Ludwik only.
+- **The fit uncertainty describes 8 digitised points and model misfit,** not material scatter.
 
 ## Credits
 

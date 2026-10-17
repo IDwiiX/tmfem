@@ -33,3 +33,13 @@ tmfem_add_phase_tests(phase2 SOURCES
   phase2/bar_elastic.cpp
   phase2/kirsch.cpp
   phase2/kirsch_convergence.cpp)
+tmfem_add_phase_tests(phase3 SOURCES
+  phase3/hardening_units.cpp
+  phase3/return_mapping.cpp
+  phase3/elastoplastic_units.cpp
+  phase3/tensile_fit.cpp
+  phase3/material_point.cpp
+  phase3/plastic_bar.cpp
+  phase3/plane_stress_units.cpp
+  phase3/newton_rate.cpp
+  phase3/kirsch_plastic.cpp)

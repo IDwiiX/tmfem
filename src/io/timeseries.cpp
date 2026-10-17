@@ -1,10 +1,10 @@
 #include "io/timeseries.hpp"
 
 #include <algorithm>
-#include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
+
+#include "io/csv_reader.hpp"
 
 namespace tmfem {
 
@@ -19,27 +19,8 @@ TimeSeries::TimeSeries(std::vector<double> t_s, std::vector<double> values)
 }
 
 TimeSeries TimeSeries::read_csv(const std::filesystem::path& path) {
-  std::ifstream in(path);
-  if (!in) throw std::runtime_error("TimeSeries: cannot open " + path.string());
-  std::vector<double> t;
-  std::vector<double> v;
-  std::string line;
-  bool header_seen = false;
-  while (std::getline(in, line)) {
-    if (line.empty() || line[0] == '#') continue;
-    if (!header_seen) {
-      header_seen = true;
-      continue;
-    }
-    std::replace(line.begin(), line.end(), ',', ' ');
-    std::istringstream row(line);
-    double ti = 0.0;
-    double vi = 0.0;
-    if (!(row >> ti >> vi)) throw std::runtime_error("TimeSeries: bad row '" + line + "' in " + path.string());
-    t.push_back(ti);
-    v.push_back(vi);
-  }
-  return TimeSeries(std::move(t), std::move(v));
+  auto cols = read_numeric_csv(path, 2);
+  return TimeSeries(std::move(cols[0]), std::move(cols[1]));
 }
 
 double TimeSeries::operator()(double t_s) const {

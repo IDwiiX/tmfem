@@ -6,6 +6,7 @@
 
 #include "core/version.hpp"
 #include "io/case_elastic2d.hpp"
+#include "io/case_elastoplastic2d.hpp"
 #include "io/case_heat1d.hpp"
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
@@ -39,6 +40,14 @@ int run_elastic2d(const std::filesystem::path& case_path) {
   return 0;
 }
 
+// Runs an elastoplastic2d case: VTU and quadrature-point CSV as named in the case file.
+int run_elastoplastic2d(const std::filesystem::path& case_path) {
+  const tmfem::Elastoplastic2DCase c = tmfem::load_elastoplastic2d_case(case_path, std::filesystem::current_path());
+  tmfem::run_elastoplastic2d_case(c);
+  std::cout << "wrote " << c.output_vtu.string() << " and " << c.output_gauss_csv.string() << '\n';
+  return 0;
+}
+
 }  // namespace
 
 // Entry point: `tmfem <case.json>` dispatches on the case's "case_type".
@@ -56,6 +65,7 @@ int main(int argc, char** argv) {
     const auto type = tmfem::read_json(case_path).at("case_type").get<std::string>();
     if (type == "heat1d") return run_heat1d(case_path);
     if (type == "elastic2d") return run_elastic2d(case_path);
+    if (type == "elastoplastic2d") return run_elastoplastic2d(case_path);
     std::cerr << "tmfem: unsupported case_type '" << type << "'\n";
     return 1;
   } catch (const std::exception& e) {

@@ -115,6 +115,73 @@ def main():
         print(f"r/b = {frac}: sigma_r/(E a dT) = {s_r:.5f} vs {-(1 - r*r)/4:.5f}, "
               f"sigma_t/(E a dT) = {s_t:.5f} vs {-(1 - 3*r*r)/4:.5f}")
 
+    print("\n== Phase 4: held bar (P4-a) and free body (P4-b), uniform dT, from 3D Hooke's law ==")
+    # sigma = C (eps - alpha dT I) with eps = diag(exx, eyy, ezz); unknown strains solved from the zero stresses.
+    for E, nu, al, dT in [(200e9, 0.3, 1.2e-5, 100.0), (117e9, 0.34, 16.9e-6, 46.2), (11.5e9, 0.2, 4.2e-6, 123.0)]:
+        C = E / ((1 + nu) * (1 - 2 * nu)) * np.array([[1 - nu, nu, nu], [nu, 1 - nu, nu], [nu, nu, 1 - nu]])
+        th = C @ (al * dT * np.ones(3))  # thermal stress of fully prevented expansion
+
+        def solve(fixed, free):
+            """Strains in `fixed` are 0; stresses in `free` are 0. Returns (strain, stress)."""
+            e = np.zeros(3)
+            e[free] = np.linalg.solve(C[np.ix_(free, free)], th[free])
+            return e, C @ e - th
+
+        ead = E * al * dT
+        cases = {
+            "P4-a plane stress (exx = 0; syy = szz = 0)": (solve([0], [1, 2]), {"sxx/(-E a dT)": (0, -ead)}),
+            "P4-a plane strain (exx = ezz = 0; syy = 0)": (
+                solve([0, 2], [1]),
+                {"sxx/(-E a dT/(1-nu))": (0, -ead / (1 - nu)), "szz/(-E a dT/(1-nu))": (2, -ead / (1 - nu))}),
+            "P4-b plane stress (all free)": (solve([], [0, 1, 2]), {}),
+            "P4-b plane strain (ezz = 0; sxx = syy = 0)": (solve([2], [0, 1]), {"szz/(-E a dT)": (2, -ead)}),
+        }
+        print(f"E = {E/1e9:.1f} GPa, nu = {nu}, alpha dT = {al*dT:.3e}")
+        for name, ((e, s), ratios) in cases.items():
+            parts = [f"{k} = {s[i]/ref:.12f}" for k, (i, ref) in ratios.items()]
+            zero = [i for i in range(3) if i not in [j for j, _ in ratios.values()]]
+            parts.append(f"max |zero stress|/(E a dT) = {max(abs(s[i]) for i in zero)/ead:.1e}")
+            if name.startswith("P4-a"):
+                eyy_ref = (1 + nu) * al * dT if "stress" in name else (1 + nu) / (1 - nu) * al * dT
+                parts.append(f"eyy/target = {e[1]/eyy_ref:.12f}")
+            else:
+                ex_ref = al * dT if "stress" in name else (1 + nu) * al * dT
+                parts.append(f"exx/alpha_eff dT = {e[0]/ex_ref:.12f}")
+            print(f"  {name}: " + ", ".join(parts))
+
+
+    print("\n== Phase 4: P4-f (i) steady slab, P4-f (iii) amplification, P4-e/h Gaussian ==")
+    L, q, h, k, T_inf = 0.012, 1e6, 100.0, 1.0, 300.0
+    T = lambda x: T_inf + q * L / (2 * h) + q * x * (L - x) / (2 * k)
+    dx = 1e-6
+    for x in (0.0, 0.003, 0.006, 0.011):
+        xc = min(max(x, 2 * dx), L - 2 * dx)
+        print(f"slab: x = {x:.3f}: k T'' + q = {k * (T(xc + dx) - 2 * T(xc) + T(xc - dx)) / dx**2 + q:+.2e} W/m3")
+    print(f"slab: Robin at x = 0: k T'(0) - h (T(0) - T_inf) = {k * (T(dx) - T(-dx)) / (2 * dx) - h * (T(0) - T_inf):+.2e}; "
+          f"at x = L: -k T'(L) - h (T(L) - T_inf) = {-k * (T(L + dx) - T(L - dx)) / (2 * dx) - h * (T(L) - T_inf):+.2e}")
+    lam_dt = 0.5
+    for theta in (1.0, 0.5):
+        G = (1 - (1 - theta) * lam_dt) / (1 + theta * lam_dt)
+        y = 1.0
+        for _ in range(20):  # scalar theta step for y' = -lam y
+            y = (y - (1 - theta) * lam_dt * y) / (1 + theta * lam_dt)
+        print(f"G^n: theta = {theta}: recurrence {y:.15e}, G^20 = {G**20:.15e}")
+    a, s0, T0 = 400 / 3.44e6, 1e-3, 100.0
+    Tg = lambda x, y, t: T0 * s0**2 / (s0**2 + 2 * a * t) * np.exp(-(x * x + y * y) / (2 * (s0**2 + 2 * a * t)))
+    t, d, dt = 4e-3, 2e-5, 1e-7
+    for (x, y) in ((0.0, 0.0), (1e-3, 5e-4), (2.5e-3, 1e-3)):
+        lap = (Tg(x + d, y, t) + Tg(x - d, y, t) + Tg(x, y + d, t) + Tg(x, y - d, t) - 4 * Tg(x, y, t)) / d**2
+        res = (Tg(x, y, t + dt) - Tg(x, y, t - dt)) / (2 * dt) - a * lap
+        print(f"Gaussian: (x, y) = ({x:.1e}, {y:.1e}): (dT/dt - a lap T)/(a |lap T| + 1e-30) = {res / (a * abs(lap)):+.1e}")
+    g = np.linspace(-0.02, 0.02, 2001)
+    X, Y = np.meshgrid(g, g)
+    for t in (0.0, 4.3e-3, 1.29e-2):
+        F = Tg(X, Y, t)
+        var = (X**2 * F).sum() / F.sum()
+        E = F.sum() * (g[1] - g[0])**2
+        print(f"Gaussian: t = {t:.2e} s: variance {var:.6e} vs s0^2 + 2at {s0**2 + 2 * a * t:.6e}; "
+              f"integral {E:.9e} vs 2 pi s0^2 T0 {2 * pi * s0**2 * T0:.9e}")
+
 
 if __name__ == "__main__":
     main()

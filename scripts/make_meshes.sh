@@ -30,3 +30,20 @@ for order in 1 2; do
   t=$((order == 1 ? 3 : 6))
   mesh "$ROOT/cases/bar/bar.geo" "$order" 1 "$ROOT/cases/bar/bar_t${t}.msh"
 done
+
+# Phase 4. Thin disk (P4-c/d/g, P4-f ii) and quarter square (P4-e/h, P4-f i/iii): 5 levels like Kirsch.
+for level in 0 1 2 3 4; do
+  for order in 1 2; do
+    t=$((order == 1 ? 3 : 6))
+    mesh "$ROOT/cases/disk/disk.geo" "$order" "${SCALES[$level]}" "$ROOT/cases/disk/msh/disk_t${t}_l${level}.msh"
+    mesh "$ROOT/cases/heat2d/square.geo" "$order" "${SCALES[$level]}" \
+      "$ROOT/cases/heat2d/msh/square_t${t}_l${level}.msh"
+  done
+done
+
+# Beam-heated block demo (D4): one T6 mesh per beam size s (mm).
+for s_mm in 0.5 1 2 4; do
+  gmsh "$ROOT/cases/beam_block/block.geo" -2 -order 2 -setnumber s_mm "$s_mm" -format msh41 -v 2 \
+    -o "$ROOT/cases/beam_block/msh/block_s${s_mm}.msh" > /dev/null
+  echo "wrote cases/beam_block/msh/block_s${s_mm}.msh"
+done

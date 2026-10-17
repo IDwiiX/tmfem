@@ -5,13 +5,13 @@ von Mises elastoplasticity and one-way thermo-mechanical coupling. Every capabil
 validation test against an analytical solution or a reference result. It is a learning and validation
 project; it does not replace ANSYS or Abaqus.
 
-**Status:** phases 1 to 3 of 5 validated:
+**Status:** phases 1 to 4 of 5 validated:
 - 1D transient heat conduction and diffusion
 - 2D linear elasticity with T3/T6 triangles, plane stress and plane strain
 - small-strain von Mises plasticity with isotropic hardening (tabulated and Ludwik): radial return,
   consistent tangent, global Newton with load stepping, plane strain and plane stress
-
-Thermo-mechanical coupling is not built yet.
+- 2D transient heat (T3/T6, volumetric source, convection, face cooling) and one-way thermal strain in
+  linear elasticity (plane stress and plane strain), with a beam-heated block demo
 
 ## Results
 
@@ -22,7 +22,7 @@ The error column is relative (%) except where the tolerance is absolute or the r
 Report-only rows are compared with a value that is not a target, such as an estimate or the source's
 parameters. Their difference is shown in parentheses, and "n/a" marks rows with no comparison value.
 
-### Phases 1 to 3
+### Phases 1 to 4
 
 <!-- results:begin -->
 | ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |
@@ -105,6 +105,43 @@ parameters. Their difference is shown in parentheses, and "n/a" marks rows with 
 | P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: max sigma_yy in the field [MPa], at r = 1.174 a | n/a | 331.231 | n/a | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
 | P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: plastic zone extent (r - a) / a | n/a | 0.174059 | n/a | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
 | P3-f | Elastoplastic hole plate, S = 140 MPa (report only) | plane stress, T6 level 4: sigma_yy at the point nearest the edge [MPa] (reference = Neuber) | 321.314 | 318.675 | (-0.821%) | report only | `P3-f elastoplastic hole plate, plane stress, level 4 (report)` |
+| P4-a | Bar held in x, uniform dT | T3 plane strain max rel error of sigma_xx | 0 | 1.80801e-14 | +1.81e-14 | 1e-8 relative | `P4-a held bar` |
+| P4-a | Bar held in x, uniform dT | T3 plane stress max rel error of sigma_xx | 0 | 1.00707e-13 | +1.01e-13 | 1e-8 relative | `P4-a held bar` |
+| P4-a | Bar held in x, uniform dT | T6 plane strain max rel error of sigma_xx | 0 | 1.0396e-13 | +1.04e-13 | 1e-8 relative | `P4-a held bar` |
+| P4-a | Bar held in x, uniform dT | T6 plane stress max rel error of sigma_xx | 0 | 8.07146e-14 | +8.07e-14 | 1e-8 relative | `P4-a held bar` |
+| P4-b | Free body, uniform dT | T3 plane strain max rel displacement error | 0 | 3.16365e-15 | +3.16e-15 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T3 plane strain max stress over beta dT | 0 | 1.03315e-14 | +1.03e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T3 plane stress max rel displacement error | 0 | 6.6283e-15 | +6.63e-15 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T3 plane stress max stress over beta dT | 0 | 2.27739e-14 | +2.28e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T6 plane strain max rel displacement error | 0 | 1.64689e-14 | +1.65e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T6 plane strain max stress over beta dT | 0 | 5.26508e-14 | +5.27e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T6 plane stress max rel displacement error | 0 | 1.04221e-14 | +1.04e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-b | Free body, uniform dT | T6 plane stress max stress over beta dT | 0 | 5.18064e-14 | +5.18e-14 | 1e-10 relative | `P4-b free body, uniform dT` |
+| P4-c | Thin disk, parabolic T: sigma_r | sigma_r over E alpha dT at r/b = 0.0 | -0.25 | -0.249959 | +0.0164% | 1% | `P4-c P4-d thin disk stresses` |
+| P4-c | Thin disk, parabolic T: sigma_r | sigma_r over E alpha dT at r/b = 0.5 | -0.1875 | -0.187475 | +0.0132% | 1% | `P4-c P4-d thin disk stresses` |
+| P4-c | Thin disk, parabolic T: sigma_r | sigma_r over E alpha dT at r/b = 1.0 | 0 | 2.15321e-05 | +2.15e-05 | 0.0025 absolute | `P4-c P4-d thin disk stresses` |
+| P4-d | Thin disk, parabolic T: sigma_theta | sigma_theta over E alpha dT at r/b = 0.0 | -0.25 | -0.249959 | +0.0164% | 1% | `P4-c P4-d thin disk stresses` |
+| P4-d | Thin disk, parabolic T: sigma_theta | sigma_theta over E alpha dT at r/b = 0.5 | -0.0625 | -0.0624774 | +0.0361% | 1% | `P4-c P4-d thin disk stresses` |
+| P4-d | Thin disk, parabolic T: sigma_theta | sigma_theta over E alpha dT at r/b = 1.0 | 0.5 | 0.500014 | +0.00283% | 1% | `P4-c P4-d thin disk stresses` |
+| P4-e | 2D Gaussian heat spreading | T3 energy drift | 0 | 1.97768e-14 | +1.98e-14 | 1e-10 relative | `P4-e Gaussian spreading: variance and energy` |
+| P4-e | 2D Gaussian heat spreading | T3 max rel variance error | 0 | 0.00034937 | +0.000349 | 0.5% | `P4-e Gaussian spreading: variance and energy` |
+| P4-e | 2D Gaussian heat spreading | T6 energy drift | 0 | 5.80685e-14 | +5.81e-14 | 1e-10 relative | `P4-e Gaussian spreading: variance and energy` |
+| P4-e | 2D Gaussian heat spreading | T6 max rel variance error | 0 | 7.84796e-09 | +7.85e-09 | 0.5% | `P4-e Gaussian spreading: variance and energy` |
+| P4-f | 2D heat with source and convection | (i) steady slab T6 max rel error | 0 | 2.51423e-13 | +2.51e-13 | 1e-10 relative | `P4-f (i) steady slab with source and Robin faces` |
+| P4-f | 2D heat with source and convection | (ii) energy balance T3 theta 0.5 | 0 | 8.2391e-13 | +8.24e-13 | 1e-10 relative | `P4-f (ii) discrete energy balance with source, curved Robin rim and face sink` |
+| P4-f | 2D heat with source and convection | (ii) energy balance T3 theta 1.0 | 0 | 1.02003e-12 | +1.02e-12 | 1e-10 relative | `P4-f (ii) discrete energy balance with source, curved Robin rim and face sink` |
+| P4-f | 2D heat with source and convection | (ii) energy balance T6 theta 0.5 | 0 | 2.59941e-12 | +2.6e-12 | 1e-10 relative | `P4-f (ii) discrete energy balance with source, curved Robin rim and face sink` |
+| P4-f | 2D heat with source and convection | (ii) energy balance T6 theta 1.0 | 0 | 2.246e-12 | +2.25e-12 | 1e-10 relative | `P4-f (ii) discrete energy balance with source, curved Robin rim and face sink` |
+| P4-f | 2D heat with source and convection | (iii) amplification T3 theta 0.5 | 0 | 1.28865e-11 | +1.29e-11 | 1e-10 relative | `P4-f (iii) uniform plate cooled through its faces: amplification G^n` |
+| P4-f | 2D heat with source and convection | (iii) amplification T3 theta 1.0 | 0 | 4.59165e-14 | +4.59e-14 | 1e-10 relative | `P4-f (iii) uniform plate cooled through its faces: amplification G^n` |
+| P4-f | 2D heat with source and convection | (iii) amplification T6 theta 0.5 | 0 | 4.24482e-11 | +4.24e-11 | 1e-10 relative | `P4-f (iii) uniform plate cooled through its faces: amplification G^n` |
+| P4-f | 2D heat with source and convection | (iii) amplification T6 theta 1.0 | 0 | 1.07984e-13 | +1.08e-13 | 1e-10 relative | `P4-f (iii) uniform plate cooled through its faces: amplification G^n` |
+| P4-g | Thin disk convergence orders | T3 plane stress L2 order (levels 1-4) | 2 | 2.01656 | +0.0166 | +/- 0.15 | `P4-g thin disk convergence` |
+| P4-g | Thin disk convergence orders | T3 plane stress energy order (levels 1-4) | 1 | 1.00572 | +0.00572 | +/- 0.15 | `P4-g thin disk convergence` |
+| P4-g | Thin disk convergence orders | T6 plane stress L2 order (levels 1-4) | 3 | 3.05664 | +0.0566 | +/- 0.15 | `P4-g thin disk convergence` |
+| P4-g | Thin disk convergence orders | T6 plane stress energy order (levels 1-4) | 2 | 2.03809 | +0.0381 | +/- 0.15 | `P4-g thin disk convergence` |
+| P4-h | 2D Gaussian heat convergence orders | T3 L2 order (levels 1-4) | 2 | 1.95395 | -0.046 | +/- 0.15 | `P4-h Gaussian spreading convergence` |
+| P4-h | 2D Gaussian heat convergence orders | T6 L2 order (levels 1-4) | 3 | 3.07825 | +0.0782 | +/- 0.15 | `P4-h Gaussian spreading convergence` |
 <!-- results:end -->
 
 Notes:
@@ -214,6 +251,61 @@ Notes on phase 3 (derivations in [docs/learning/phase3.md](docs/learning/phase3.
 | ![Ludwik fits and the uniaxial material point](docs/figures/phase3_tensile_fit.png) | ![Newton residual histories](docs/figures/phase3_newton_history.png) |
 | ![Plastic zone at the hole edge](docs/figures/phase3_plastic_zone.png) | |
 
+### Phase 4 notes
+
+- **Thermal load.** `f_th = ∫ Bᵀ m β ΔT_h dA` with β = Eα/(1−ν) (plane stress) or Eα/(1−2ν) (plane strain).
+  Stress recovery subtracts β ΔT_h m. In plane strain σ_zz = ν(σ_xx + σ_yy) − EαΔT; the case output had
+  dropped the thermal term until `tests/phase4/thermal_output.cpp` caught it (derivation:
+  [docs/learning/phase4.md](docs/learning/phase4.md)).
+- **P4-a, P4-b, P4-f (i) and (iii)** are exact for the discretisation and hold to round-off (≤ 5e-11).
+  **P4-f (ii)**, the discrete energy balance, is an identity of the θ-scheme for any M, A, F. It checks the
+  integrator's bookkeeping only. So the same test also asserts `A·(T_inf 1) = F` on a curved Robin rim with a
+  face sink (5e-17), which a wrong load would fail.
+- **P4-e** runs on the finest mesh. Disclosed change: the first run used level 2, where the T3 variance was
+  0.55% off (tolerance 0.5%). The cause was a constant O(h²) offset from interpolating the initial Gaussian,
+  while the growth 2at matched to about 1e-6. On straight T6 the variance identity holds almost by
+  construction, so **P4-h** (L2 order of the whole profile) is the real accuracy test.
+- **P4-h** uses Crank-Nicolson with dt ∝ h^((p+1)/2), so the asserted slope is the combined space-time order
+  along that path. The time part is 2% of the error for T3 and about half for T6, measured on level 2 as
+  (4/3)‖T(dt) − T(dt/2)‖. A wrong spatial order would still show: T6 at 2.5 would fit about 2.6. The numerics
+  review's Richardson-corrected space-only orders are 3.03 (T6) and 1.95 (T3).
+- **P4-f (iii)** is posed in excess temperature (T_inf = 0) with k = 0.4 W/(m K). Disclosed change: the
+  first run (T_inf = 300 K, k = 400) missed 1e-10 by up to 6e-6, from floating point (cancellation and a
+  solve dominated by conduction) and not from discretisation.
+
+| | |
+| --- | --- |
+| ![Thin disk stresses vs Timoshenko and Goodier](docs/figures/phase4_thin_disk.png) | ![Gaussian spreading: variance and profile](docs/figures/phase4_gaussian.png) |
+| ![Phase 4 convergence orders](docs/figures/phase4_convergence.png) | |
+
+### Demo D4: beam-heated block (not a validation)
+
+A Gaussian beam deposits 1 kJ per metre of path in 10 µs in a long block. The model is the block's
+40 mm x 40 mm section, in plane strain; a long block is really in generalised plane strain, which shifts
+σ_zz by 0.06% to 5% of its peak for s = 0.5 to 4 mm. The material properties are cited in
+[cases/beam_block/README.md](cases/beam_block/README.md). Every finite-element centre value is within 0.5% (ΔT)
+and 4.5% (von Mises) of the closed-form infinite-plane estimate that the demo prints next to it. The ΔT gap is
+diffusion during the pulse, largest at s = 0.5 mm. The stress gap is the finite section, largest at s = 4 mm.
+
+**Interpretation.** At equal deposited energy the hot spot is about 2.65 times hotter in graphite
+(123 K vs 46 K at s = 1 mm) because its ρc is lower. Yet it carries 20 times less stress
+(3.7 vs 74 MPa von Mises at the centre), because the stress scales with Eα/((1−ν)ρc), which is 0.047 Pa m³/J for
+graphite against 0.93 for copper. The stress is mostly compressive and out of plane: the cold block prevents the hot
+core from expanding, and σ_zz ≈ −EαΔT/(1−ν) is twice the in-plane stress at the centre. The peak stress falls as
+1/s². So for this deposit annealed copper (yield 69 MPa) yields for s ≤ 1 mm (von Mises / yield = 4.3 at
+0.5 mm, 1.08 at 1 mm), while graphite stays below 6% of its flexural strength and 23% of its compressive
+strength even at 0.5 mm. This is why beam dumps and absorbers use graphite. The stresses peak at the end of the
+pulse and relax as heat diffuses over the spot. For copper at s = 1 mm they fall to 31% of the peak by 10 ms
+and 4.4% by 100 ms, long before convection removes the energy. The cooling uses backward Euler with 40 steps per
+decade, and these values are within 1.4% of a run with 4× smaller steps.
+These are elastic, constant-property results. Above yield, copper would need thermoplasticity. Graphite at
+s = 0.5 mm reaches 782 K, where its specific heat is 2.3 times the room value, so that row overestimates
+the temperature rise by about 54%.
+
+| | |
+| --- | --- |
+| ![Beam block: temperature and von Mises at the end of the pulse](docs/figures/phase4_beam_block_maps.png) | ![Beam size sweep: centre stress and strength ratios](docs/figures/phase4_beam_block_sweep.png) |
+
 ## Build and test
 
 Requires a C++17 compiler, CMake >= 3.16 and Eigen 3 (`sudo apt install libeigen3-dev`).
@@ -278,6 +370,23 @@ Phase 3 (elastoplasticity):
 - **Tabulated hardening has slope jumps** at the data points, so quadratic Newton convergence is
   asserted with Ludwik only.
 - **The fit uncertainty describes 8 digitised points and model misfit,** not material scatter.
+
+Phase 4 (thermo-mechanical coupling):
+- **The beam-block demo uses plane strain (eps_zz = 0); the real state of a long block is generalised plane
+  strain:** eps_zz is a constant set by zero net axial force. The difference is a uniform sigma_zz shift of
+  E alpha mean(dT), which is (1 - nu) 2 pi s^2 / A of the peak |sigma_zz|. For copper in the
+  40 mm x 40 mm section this is 0.06% at s = 0.5 mm, 0.26% at 1 mm, 1.0% at 2 mm and 4.1% at 4 mm
+  (docs/learning/phase4.md section 11). Plane strain is exact for a block whose ends are held.
+- **Constant properties (780 K limit):** with constant properties, graphite at s = 0.5 mm reaches about
+  780 K, where its specific heat is 2.3 times the room-temperature value (NIST-JANAF). The same deposit
+  with c(T) gives 612 K, so that row overestimates the temperature rise by 54%.
+- **Assumed graphite values:** nu = 0.2 and c from NIST-JANAF ideal graphite. Neither is on the SGL R4550
+  data sheet.
+- **One-way, quasi-static coupling:** stress does not feed back into temperature, and there are no inertia
+  or stress waves. The demo's thermal analysis is elastic only (no thermoplasticity).
+- **Consistent capacity only in 2D:** row-sum lumping would give zero capacity to T6 corner nodes, so there
+  is no discrete maximum principle for sharp data. No undershoot beyond round-off (3e-10 K) was observed in the demo at the end of the pulse.
+- **The demo's peak stresses are nodal averages;** centre values come from point evaluation.
 
 ## Credits
 

@@ -5,6 +5,7 @@
 #include "fem/assembly.hpp"
 #include "fem/element_geometry.hpp"
 #include "fem/shape_functions.hpp"
+#include "mechanics/stress_recovery.hpp"
 
 namespace tmfem {
 
@@ -27,7 +28,7 @@ ElasticErrors elastic_errors(const Elastic2DProblem& p, const Eigen::VectorXd& u
         const double dA = g.detJ * rule.w[q];
         Eigen::Vector2d u_h = Eigen::Vector2d::Zero();
         for (Eigen::Index a = 0; a < s.N.size(); ++a) u_h += s.N(a) * u_e.segment<2>(2 * a);
-        const Eigen::Vector3d s_h = D * strain_displacement(g.dN_dx) * u_e;
+        const Eigen::Vector3d s_h = cell_stress(p, u_m, *b, e, rule.xi[q]);  // includes the thermal term
         const Eigen::Vector2d u = u_exact(g.x);
         const Eigen::Vector3d sig = sigma_exact(g.x);
         e_L2 += (u - u_h).squaredNorm() * dA;

@@ -59,11 +59,14 @@ Data: `references/data/tensile_true.csv`, `material_tensile.json`. E = 207.423 G
 
 | ID | Case | Quantity | Target | Tolerance |
 | --- | --- | --- | --- | --- |
-| P4-a | Bar in plane stress, held in x, free laterally, uniform dT | sigma_xx, sigma_yy | -E alpha dT, 0 | 1e-8 relative |
-| P4-b | Free body, uniform dT | Stress; displacement | 0; alpha dT x | 1e-10 relative |
-| P4-c | Thin disk, T = dT (1 - r^2/b^2), plane stress | sigma_r / (E alpha dT) at r/b = 0, 0.5, 1 | -0.25, -0.1875, 0 | 1% |
+| P4-a | Bar in plane stress, held in x, free laterally, uniform dT | sigma_xx, sigma_yy | -E alpha dT, 0. Plane strain (eps_zz = 0): sigma_xx = sigma_zz = -E alpha dT/(1-nu), sigma_yy = 0 | 1e-8 relative |
+| P4-b | Free body, uniform dT | Stress; displacement | 0; alpha dT x. Plane strain: in-plane stress 0, sigma_zz = -E alpha dT, displacement (1+nu) alpha dT x | 1e-10 relative |
+| P4-c | Thin disk, T = dT (1 - r^2/b^2), plane stress | sigma_r / (E alpha dT) at r/b = 0, 0.5, 1 | -0.25, -0.1875, 0 | 1% (absolute 0.0025 where the target is 0: sigma_r at r = b) |
 | P4-d | Same | sigma_theta / (E alpha dT) at r/b = 0, 0.5, 1 | -0.25, -0.0625, 0.5 | 1% (absolute 0.0025 near zero crossings) |
 | P4-e | 2D Gaussian heat spreading | Variance s0^2 + 2 alpha t; energy | closed form | 0.5%; 1e-10 relative |
+| P4-f | 2D heat, source and convection | (i) steady slab, uniform q, Robin both faces: T = T_inf + qL/(2h) + q x(L-x)/(2k); (ii) discrete energy balance over a transient with time-varying q and T_inf, curved Robin rim, face sink; (iii) uniform plate cooled through its faces: discrete amplification G^n | (i) T6 exact; (ii) exact; (iii) exact | 1e-10 relative |
+| P4-g | Thin disk P4-c/d, convergence | L2 displacement order; energy-norm order | T3: 2, 1; T6: 3, 2 | +/- 0.15 (levels 1-4) |
+| P4-h | 2D Gaussian heat (P4-e), convergence | L2 error of T at t_end, observed order | T3: 2; T6: 3 | +/- 0.15 |
 
 P4-c and P4-d come from sigma_r = (E alpha / b^2) int_0^b T r dr - (E alpha / r^2) int_0^r T r dr
 and sigma_theta = (E alpha / b^2) int_0^b T r dr + (E alpha / r^2) int_0^r T r dr - E alpha T

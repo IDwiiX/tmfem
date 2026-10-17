@@ -27,6 +27,8 @@ add_library(tmfem_core STATIC
   thermal/diffusion_analytic.cpp
   thermal/arrhenius.cpp
   thermal/lumped_plate.cpp
+  thermal/heat2d.cpp
+  coupling/thermal_strain.cpp
   io/timeseries.cpp
   io/csv_reader.cpp
   io/csv_writer.cpp
@@ -34,7 +36,8 @@ add_library(tmfem_core STATIC
   io/case_heat1d.cpp
   io/vtu_writer.cpp
   io/case_elastic2d.cpp
-  io/case_elastoplastic2d.cpp)
+  io/case_elastoplastic2d.cpp
+  io/case_thermomech2d.cpp)
 target_include_directories(tmfem_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(tmfem_core PUBLIC Eigen3::Eigen nlohmann_json::nlohmann_json)
 target_compile_definitions(tmfem_core PRIVATE TMFEM_VERSION_STRING="${PROJECT_VERSION}")

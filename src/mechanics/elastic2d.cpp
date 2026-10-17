@@ -55,9 +55,15 @@ Eigen::VectorXd assemble_traction_load(const Mesh& mesh, const std::vector<Tract
   return f;
 }
 
+Eigen::VectorXd assemble_load(const Elastic2DProblem& p) {
+  Eigen::VectorXd f = assemble_traction_load(p);
+  if (p.thermal) f += assemble_thermal_load(p.mesh, p.mesh.blocks_of(p.region), *p.thermal, p.beta());
+  return f;
+}
+
 Elastic2DSolution solve_elastic2d(const Elastic2DProblem& p) {
   const Eigen::SparseMatrix<double> K = assemble_stiffness(p);
-  const Eigen::VectorXd f = assemble_traction_load(p);
+  const Eigen::VectorXd f = assemble_load(p);
   const std::map<int, double> bc = collect_dirichlet(p.mesh, p.displacements);
 
   std::vector<int> constrained;

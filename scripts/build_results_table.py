@@ -41,6 +41,14 @@ BENCHMARK = {
     "P3-d": "Newton convergence rate",
     "P3-e": "Plane-strain bar FE vs material point",
     "P3-f": "Elastoplastic hole plate, S = 140 MPa (report only)",
+    "P4-a": "Bar held in x, uniform dT",
+    "P4-b": "Free body, uniform dT",
+    "P4-c": "Thin disk, parabolic T: sigma_r",
+    "P4-d": "Thin disk, parabolic T: sigma_theta",
+    "P4-e": "2D Gaussian heat spreading",
+    "P4-f": "2D heat with source and convection",
+    "P4-g": "Thin disk convergence orders",
+    "P4-h": "2D Gaussian heat convergence orders",
 }
 
 

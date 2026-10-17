@@ -1,0 +1,22 @@
+{
+  "case_type": "thermomech2d",
+  "description": "Demo D4 (not a validation): Gaussian beam in a long OFE copper block, plane strain. Properties and sources: cases/beam_block/README.md.",
+  "mesh_pattern": "cases/beam_block/msh/block_s{s_mm}.msh",
+  "beam_sizes_mm": [0.5, 1, 2, 4],
+  "material": {
+    "name": "copper OFE C10100 annealed",
+    "rho_kg_m3": 8940, "c_J_kgK": 385, "k_W_mK": 391, "alpha_per_K": 16.9e-6,
+    "E_GPa": 123.5, "nu": 0.35,
+    "strength": {"type": "ductile", "yield_MPa": 69}
+  },
+  "plane": "plane_strain",
+  "beam": {"E_per_length_J_m": 1000, "pulse_s": 1e-5, "pulse_steps": 10},
+  "cooling": {"physical": "outer", "h_W_m2K": 10, "T_inf_K": 293.15,
+              "stage_ends_s": [1e-4, 1e-3, 1e-2, 1e-1, 1], "steps_per_stage": 40},
+  "T0_K": 293.15,
+  "T_ref_K": 293.15,
+  "quarter_model_factor": 4,
+  "section_area_m2": 0.0016,
+  "supports": [{"physical": "sym_x", "component": "x"}, {"physical": "sym_y", "component": "y"}],
+  "output_dir": "results/phase4/beam_block/copper"
+}

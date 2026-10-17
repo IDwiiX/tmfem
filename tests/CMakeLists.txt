@@ -43,3 +43,13 @@ tmfem_add_phase_tests(phase3 SOURCES
   phase3/plane_stress_units.cpp
   phase3/newton_rate.cpp
   phase3/kirsch_plastic.cpp)
+tmfem_add_phase_tests(phase4 SOURCES
+  phase4/thermal_strain_units.cpp
+  phase4/heat2d_units.cpp
+  phase4/thermal_output.cpp
+  phase4/thermal_bar.cpp
+  phase4/thermal_free_body.cpp
+  phase4/thermal_disk.cpp
+  phase4/heat2d_exactness.cpp
+  phase4/heat2d_gaussian.cpp
+  phase4/beam_block_demo.cpp)

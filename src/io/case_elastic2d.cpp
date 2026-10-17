@@ -78,17 +78,12 @@ Elastic2DCase load_elastic2d_case(const std::filesystem::path& json_path, const 
 void run_elastic2d_case(const Elastic2DCase& c) {
   const Elastic2DProblem& p = c.problem;
   const Elastic2DSolution sol = solve_elastic2d(p);
-  const Eigen::MatrixXd sigma = nodal_average_stress(p, sol.u_m);
+  const NodalStressFields f = nodal_stress_fields(p, sol.u_m);  // sigma_zz with the thermal term
   const int n = p.mesh.n_nodes();
-  Eigen::MatrixXd u(n, 3), s_MPa(n, 3), szz_MPa(n, 1), vm_MPa(n, 1);
-  for (int i = 0; i < n; ++i) {
-    u.row(i) << sol.u_m(2 * i), sol.u_m(2 * i + 1), 0.0;
-    const Eigen::Vector3d s = sigma.row(i).transpose();
-    const double szz = sigma_zz(p.material, p.plane, s);
-    s_MPa.row(i) = s.transpose() / kPaPerMPa;
-    szz_MPa(i, 0) = szz / kPaPerMPa;
-    vm_MPa(i, 0) = von_mises(s, szz) / kPaPerMPa;
-  }
+  Eigen::MatrixXd u(n, 3);
+  for (int i = 0; i < n; ++i) u.row(i) << sol.u_m(2 * i), sol.u_m(2 * i + 1), 0.0;
+  const Eigen::MatrixXd s_MPa = f.sigma_Pa / kPaPerMPa;
+  const Eigen::MatrixXd szz_MPa = f.sigma_zz_Pa / kPaPerMPa, vm_MPa = f.von_mises_Pa / kPaPerMPa;
   write_vtu(c.output_vtu, p.mesh, p.mesh.blocks_of(p.region),
             {{"displacement_m", u}, {"stress_xx_yy_xy_MPa", s_MPa}, {"stress_zz_MPa", szz_MPa}, {"von_mises_MPa", vm_MPa}});
   write_csv(c.output_nodal_csv,

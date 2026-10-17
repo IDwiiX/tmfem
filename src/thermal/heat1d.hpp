@@ -9,10 +9,9 @@
 
 #include "fem/line2.hpp"
 #include "mesh/interval_mesh.hpp"
+#include "thermal/thermal_operators.hpp"
 
 namespace tmfem {
-
-using TimeFunction = std::function<double(double t_s)>;
 
 // Boundary conditions at one end of the slab (docs/learning/phase1.md section 1).
 struct DirichletBC {
@@ -35,16 +34,6 @@ struct Heat1DProblem {
   BoundaryCondition left;
   BoundaryCondition right;
   std::function<double(double x_m, double t_s)> source;  // W/m3; empty means none
-};
-
-// Semi-discrete system M dT/dt + A T = F(t) with Dirichlet dofs (section 3).
-// Dimension-agnostic: phase 4 builds the same struct from a 2D mesh.
-struct ThermalOperators {
-  Eigen::SparseMatrix<double> M;
-  Eigen::SparseMatrix<double> A;  // K + H
-  std::function<Eigen::VectorXd(double t_s)> F;
-  std::vector<int> dirichlet_dofs;
-  std::function<Eigen::VectorXd(double t_s)> dirichlet_values;
 };
 
 ThermalOperators build_operators(const Heat1DProblem& problem, MassType mass);

@@ -1,30 +1,17 @@
 # tmfem
 
-A from-scratch C++17 finite-element solver for 1D and 2D transient heat conduction and diffusion, 2D linear
-elasticity (T3/T6, plane stress and plane strain), small-strain von Mises elastoplasticity with isotropic
-hardening, and one-way thermo-mechanical coupling. No FEM library is used: only the standard library, Eigen,
-Catch2, nlohmann/json, and Gmsh as an external mesh generator. Every capability is tied to a Catch2
-validation test against an analytical solution, a recomputed textbook result or a reference simulation, with
-an explicit tolerance, and every convergence claim is an observed order on four mesh levels. A
-beam-heated block demo (not a validation) shows the thermal-stress step of the beam-intercepting-device
-workflow. tmfem is a learning and validation project. It does not replace ANSYS or Abaqus.
+A C++17 finite-element solver, written from scratch, for heat conduction and diffusion, 2D linear
+elasticity, von Mises plasticity and thermal stress. Every result is checked by an automated test against
+an analytical solution or a reference value. It reproduces, at small scale, the thermal-stress step used to
+design beam-intercepting devices at CERN.
 
-**Status:** phases 1 to 5 done. Technical report: [report/main.tex](report/main.tex) (build it with the commands
-below). Per-phase notes and disclosed changes: [docs/VALIDATION.md](docs/VALIDATION.md). Derivations:
-[docs/learning/](docs/learning/).
+Report: [report/main.pdf](report/main.pdf) · Derivations: [docs/learning/](docs/learning/) ·
+Validation notes: [docs/VALIDATION.md](docs/VALIDATION.md)
 
 ## Results
 
-Every number below is written by the test that computes it, into `results/validation/`, and the
-table is regenerated from those files by `python3 scripts/build_results_table.py` after `ctest`. The script
-fails if any reference row of [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md) has no result, unless it is
-listed as skipped with its reason (only P1-l). The error column is relative (%) except where the tolerance is
-absolute or the reference is zero. Report-only rows are compared with a value that is not a target, such as an
-estimate or the source's parameters. Their difference is shown in parentheses, and "n/a" marks rows with no
-comparison value. Every computed number quoted in the report is listed with its source in [docs/PROVENANCE.md](docs/PROVENANCE.md).
-The computed numbers in the README prose (the demo paragraph and its limitation) are written into the marked
-blocks by `scripts/report_numbers.py` from the same list. Inputs and reference values come from the case
-files and docs/REFERENCE_VALUES.md.
+Generated from the test outputs by `python3 scripts/build_results_table.py`. Reference values and
+tolerances are in [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md). P1-l waits for its input data.
 
 <!-- results:begin -->
 | ID | Benchmark | Quantity | Reference | tmfem | Error | Tolerance | Test |
@@ -147,40 +134,10 @@ files and docs/REFERENCE_VALUES.md.
 | P4-h | 2D Gaussian heat convergence orders | T6 L2 order (levels 1-4) | 3 | 3.07825 | +0.0782 | +/- 0.15 | `P4-h Gaussian spreading convergence` |
 <!-- results:end -->
 
-### Source values not confirmed
-
-The reference documents contain values that the recomputation (`references/verify_reference_values.py`) does
-not confirm. The tests use the recomputed values:
-- **P1-a:** flux 2.4e-12 → 2.4e-9 kg/(m² s), because mm were not converted.
-- **P1-b:** 7.025 h → 7.047 h; the source interpolated an erf table.
-- **P1-f:** surface concentration 2.8e19 → 6.97e19 at/cm³; the source value matches t = 36 min.
-- **P1-d:** D(1000 K) 2.04e-13 → 2.067e-13 m²/s and D(800 K) 2.11e-15 → 2.140e-15 m²/s (cause not identified).
-- **P1-g:** D0 3.2 m²/s → 3.11 cm²/s (unit slip), and D(1300 °C) 5.86e-11 m²/s → 1.74e-11 cm²/s (cause not
-  identified).
-- **P1-k:** "below 0.01 K" is infeasible for the 48 K swing → quasi-steady bound 0.0255 K.
-- **P2-e:** the r = 1.5a rows (e.g. 2100 MPa → 25.93 MPa).
-- **P3-a:** the source fit chose different points: m 0.4077 → 0.385 and K 559.27 → 548 MPa (log-log, σ_y fixed).
-
-P3-b uses the tabulated hardening curve, as the source's Abaqus run does: the stress-strain curve is flat at
-457 MPa, so a small stress misfit of a Ludwik fit becomes a large plastic-strain error there.
-
-### Disclosed changes to the test plan
-
-Each change was approved before it was made. Details, and the numbers from before each change, are in
-[docs/VALIDATION.md](docs/VALIDATION.md):
-- **P1-k:** the infeasible bound above was replaced.
-- **P2-f:** the orders are fitted on levels 1–4. Level 0 is pre-asymptotic, and the T6 pass depends on
-  leaving it out.
-- **P3-d:** the Newton rate is asserted on the FE bar, because on the hole plate Newton reaches round-off
-  too fast for the rate criterion.
-- **P4-e:** the test runs on the finest mesh, because of a constant O(h²) interpolation offset on level 2.
-- **P4-f (iii):** the test is posed in excess temperature with k = 0.4 instead of 400 W/(m K), to avoid
-  floating-point cancellation; the target G^n does not depend on k.
-- **P4-c to P4-h:** the P4-f to P4-h rows and the plane-strain targets of P4-a and P4-b were written in phase 4
-  together with their tests, and the P4-c
-  tolerance was clarified to an absolute 0.0025 where the target is zero.
-- **CI:** `ubuntu-24.04` instead of `ubuntu-latest`, because the build requires Gmsh 4.12.1.
-- **P1-l** (comparison with ANSYS) is skipped until the real input file and the ANSYS curve are provided.
+Several values in the source lab material did not survive recomputation (for example a flux off by a
+factor 1000 and a wrong Kirsch table at r = 1.5a). The tests use the recomputed values; the changes are
+listed in [docs/REFERENCE_VALUES.md](docs/REFERENCE_VALUES.md) and
+[docs/VALIDATION.md](docs/VALIDATION.md).
 
 ### Key figures
 
@@ -190,97 +147,33 @@ Each change was approved before it was made. Details, and the numbers from befor
 | ![Kirsch convergence orders](docs/figures/phase2_convergence.png) | ![Ludwik fits and the uniaxial material point](docs/figures/phase3_tensile_fit.png) |
 | ![Plastic zone at the hole edge](docs/figures/phase3_plastic_zone.png) | ![Beam block: temperature and von Mises at the end of the pulse](docs/figures/phase4_beam_block_maps.png) |
 
-All figures, with the notes behind them, are in [docs/VALIDATION.md](docs/VALIDATION.md).
-
-### Demo D4: beam-heated block (not a validation)
+### Demo: beam-heated block
 
 <!-- demo:begin -->
-A Gaussian beam deposits 1 kJ per metre of path in 10 µs into a long 40 mm x 40 mm block of copper or
-graphite, solved in plane strain (properties and sources: [cases/beam_block/README.md](cases/beam_block/README.md)).
-At equal deposited energy, graphite has a 2.65 times larger temperature rise than copper
-(123 K vs 46.2 K at s = 1 mm) yet carries 20 times less von Mises stress
-(3.7 vs 74.3 MPa at the centre), because the stress scales with Eα/((1−ν)ρc). Annealed
-copper exceeds yield for s ≤ 1 mm (von Mises / yield = 1.08 at 1 mm); graphite reaches
-5.4% of its flexural strength at s = 0.5 mm, an optimistic tensile check. The demo illustrates
-graphite's thermal-shock resistance only; its lower energy density for the same beam is outside it. These are
-elastic, constant-property estimates; the Gaussian stands in for a FLUKA or Geant4 energy map. Full
-interpretation in [docs/VALIDATION.md](docs/VALIDATION.md#demo-d4-beam-heated-block-not-a-validation) and in
-section 4 of the report. Numbers generated by `scripts/report_numbers.py` (sources: docs/PROVENANCE.md).
+A Gaussian beam deposits 1 kJ per metre in 10 µs into a long copper or graphite block. At s = 1 mm,
+graphite heats 2.65 times more than copper (123 K vs 46.2 K) but carries 20 times less stress
+(3.7 vs 74.3 MPa); copper exceeds yield for s ≤ 1 mm. Details: [cases/beam_block/README.md](cases/beam_block/README.md).
 <!-- demo:end -->
 
 ## Build and test
 
-Requires a C++17 compiler, CMake >= 3.16, Eigen 3 and Gmsh 4.12.1
-(Ubuntu 24.04: `sudo apt install libeigen3-dev gmsh`). Catch2 and nlohmann/json are downloaded at pinned
-versions during configuration. The meshes are not committed. The build generates every `.msh` from its `.geo`
-with `scripts/make_meshes.sh`, which refuses any other Gmsh version, so the meshes are the same on every
-machine.
+Requires a C++17 compiler, CMake >= 3.16, Eigen 3 and Gmsh 4.12.1 (Ubuntu 24.04:
+`sudo apt install libeigen3-dev gmsh`). Meshes are generated from the `.geo` files during the build.
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
-ctest --test-dir build --output-on-failure
+ctest --test-dir build --output-on-failure      # add -LE slow to skip the two slow tests
 ```
-
-Run one phase with `ctest --test-dir build -L phase1`, or one reference row with
-`ctest --test-dir build -L P2-c`.
-
-Run a case from the repository root (paths inside case files are relative to it):
-
-```bash
-./build/src/tmfem cases/steel_plate/synthetic.json   # writes results/steel_plate/synthetic_faces.csv
-python3 scripts/plot_phase1.py                       # phase 1 figures, after ctest -L phase1
-./build/src/tmfem cases/kirsch/kirsch_t6.json        # writes results/kirsch/kirsch_t6.vtu (ParaView)
-python3 scripts/plot_phase2.py                       # phase 2 figures, after the case and ctest -L phase2
-./build/src/tmfem cases/kirsch/kirsch_plastic_plane_stress.json  # elastoplastic plate: VTU + quadrature-point CSV
-python3 scripts/plot_phase3.py                       # phase 3 figures, after ctest -L phase3
-```
-
-The two level-4 elastoplastic plate tests take a few minutes each. Skip them with `ctest -LE slow`.
-
-Regenerate the results table, the report numbers and the report (needs `latexmk` and a TeX Live with
-`siunitx`, `natbib` and `cleveref`):
-
-```bash
-./build/src/tmfem cases/beam_block/copper.json && ./build/src/tmfem cases/beam_block/graphite.json
-ctest --test-dir build -V > results/ctest_full.log 2>&1   # full run, keeps the printed values
-python3 scripts/build_results_table.py                    # README table
-python3 scripts/report_numbers.py                         # report/generated/*, docs/PROVENANCE.md
-(cd report && latexmk -pdf main.tex)                      # report/main.pdf
-```
-
-The build reruns `scripts/make_meshes.sh` when the script or a `.geo` file changes. To force it, delete
-`build/meshes.stamp` or run `bash scripts/make_meshes.sh`.
 
 ## Limitations
 
-- **Out of scope by design:** 3D, large deformation, dynamics and stress waves, temperature-dependent
-  properties, contact, radiation, real particle-shower energy maps.
-- **Elements and materials:** triangles only (T3, T6); one isotropic material per run; unit thickness; no body
-  force. J2 plasticity with isotropic hardening only (no Bauschinger effect), rate-independent and isothermal.
-- **Time integration:** fixed steps without error control. In 2D, consistent capacity only (row-sum lumping
-  gives zero capacity to T6 corner nodes).
-- **Benchmarks:** the Kirsch plate uses infinite-plate tractions, not the source's finite Abaqus plate. The
-  elastoplastic hole plate keeps elastic Kirsch tractions on its outer boundary and is reported only. The
-  steel plate is validated against a lumped model with a synthetic input, not against ANSYS (P1-l skipped).
-  Quadratic Newton convergence is asserted with Ludwik hardening only, because the tabulated law has slope
-  jumps. The fit uncertainty describes 8 digitised points and model misfit, not material scatter.
+- 2D only, small strains, triangles only, constant material properties, no dynamics.
 <!-- demo-limits:begin -->
-- **Demo:** plane strain instead of generalised plane strain (a σ_zz shift of 0.064% to
-  5% of the peak |σ_zz|, twice that fraction in the centre von Mises); elastic and
-  constant-property (graphite at s = 0.5 mm overestimates its temperature rise by 54%); assumed
-  graphite ν and c; one-way, quasi-static coupling.
+- Demo: elastic plane strain with a Gaussian stand-in for a real energy map.
 <!-- demo-limits:end -->
-- **Reproducibility:** results depend on the Gmsh 4.12.1 meshes; the build refuses other Gmsh versions.
-
-Per-phase limitations, with the reasoning behind them, are in `docs/learning/phaseN.md` section "Limitations".
 
 ## Credits
 
-Benchmark cases adapted from M. R. Kabiri, ENSAM Meknès lab materials (with permission). Analytical solutions:
-Kirsch (1898) and Timoshenko & Goodier, *Theory of Elasticity* (hole plate, thin disk); Crank, *The
-Mathematics of Diffusion* (erf and thin-film solutions); Neuber (1961) (notch estimate). Algorithms: Simo &
-Hughes, *Computational Inelasticity*, and de Souza Neto, Perić & Owen, *Computational Methods for
-Plasticity* (radial return, consistent tangent); Dunavant (1985) (triangle quadrature). Material data for the
-demo: see [cases/beam_block/README.md](cases/beam_block/README.md) and NIST-JANAF. Full references:
-[report/refs.bib](report/refs.bib).
+Benchmark cases adapted from M. R. Kabiri, ENSAM Meknès lab materials (with permission). Analytical solutions
+and algorithms from the references in [report/refs.bib](report/refs.bib).

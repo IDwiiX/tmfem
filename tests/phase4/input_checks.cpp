@@ -71,3 +71,8 @@ TEST_CASE("thermomech2d loader rejects bad cooling stage ends", "[phase4][io]") 
   CHECK_THROWS_WITH(load(beam_case(stages, "[1e-3, 1e-3]")), ContainsSubstring("stage_ends_s"));
   CHECK_THROWS_WITH(load(beam_case(stages, "[1e-6, 1e-3]")), ContainsSubstring("stage_ends_s"));  // before the pulse ends
 }
+
+TEST_CASE("thermomech2d loader rejects step counts below 1", "[phase4][io]") {
+  CHECK_THROWS_WITH(load(beam_case("\"pulse_steps\": 10", "\"pulse_steps\": 0")), ContainsSubstring("steps"));
+  CHECK_THROWS_WITH(load(beam_case("\"steps_per_stage\": 40", "\"steps_per_stage\": 0")), ContainsSubstring("steps"));
+}

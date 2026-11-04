@@ -127,8 +127,11 @@ std::vector<double> col(const Eigen::MatrixXd& m, Eigen::Index j, double scale =
   return v;
 }
 
-// Cooling stages: at least one, ending after the pulse and each after the one before.
+// At least one step per stage. Cooling stages: at least one, ending after the pulse and each after the one before.
 void require_valid_time_grid(const BeamBlockCase& c) {
+  if (c.pulse_steps < 1 || c.cooling_steps < 1) {
+    throw std::runtime_error("thermomech2d: pulse_steps and steps_per_stage must be >= 1");
+  }
   double t = c.pulse_s;
   for (const double t_end : c.cooling_stage_ends_s) {
     if (!(t_end > t)) throw std::runtime_error("thermomech2d: stage_ends_s must increase and follow the pulse");

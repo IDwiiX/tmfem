@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace tmfem {
 

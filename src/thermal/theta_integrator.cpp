@@ -1,5 +1,6 @@
 #include "thermal/theta_integrator.hpp"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace tmfem {
@@ -9,7 +10,7 @@ ThetaIntegrator::ThetaIntegrator(ThermalOperators ops, double theta, double dt_s
       theta_(theta),
       dt_(dt_s),
       partition_(static_cast<int>(ops_.M.rows()), ops_.dirichlet_dofs) {
-  if (theta < 0.5 || theta > 1.0) {
+  if (!(theta >= 0.5 && theta <= 1.0)) {
     throw std::invalid_argument("ThetaIntegrator: theta must be in [0.5, 1] (unconditional stability)");
   }
   factorize();
@@ -21,7 +22,7 @@ void ThetaIntegrator::set_dt(double dt_s) {
 }
 
 void ThetaIntegrator::factorize() {
-  if (dt_ <= 0.0) throw std::invalid_argument("ThetaIntegrator: dt must be positive");
+  if (!(dt_ > 0.0) || !std::isfinite(dt_)) throw std::invalid_argument("ThetaIntegrator: dt must be positive and finite");
   const SparseMatrix S = ops_.M + (theta_ * dt_) * ops_.A;
   R_ = ops_.M - ((1.0 - theta_) * dt_) * ops_.A;
   S_fc_ = partition_.block_fc(S);

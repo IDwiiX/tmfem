@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
@@ -10,6 +11,8 @@
 #include "io/csv_reader.hpp"
 #include "mesh/interval_mesh.hpp"
 #include "support/paths.hpp"
+#include "thermal/heat1d.hpp"
+#include "thermal/theta_integrator.hpp"
 
 // Malformed input must fail loudly, not produce a quietly wrong result. Not a benchmark: no reference row.
 
@@ -77,4 +80,11 @@ TEST_CASE("1D build_operators rejects non-positive k and rho_c", "[phase1][therm
   p = slab();
   p.rho_c = -1.0;
   CHECK_THROWS_AS(build_operators(p, MassType::Consistent), std::invalid_argument);
+}
+
+TEST_CASE("ThetaIntegrator rejects NaN theta and a non-finite dt", "[phase1][thermal]") {
+  const ThermalOperators ops = build_operators(slab(), MassType::Consistent);
+  CHECK_THROWS_AS(ThetaIntegrator(ops, std::nan(""), 1.0), std::invalid_argument);
+  CHECK_THROWS_AS(ThetaIntegrator(ops, 1.0, std::nan("")), std::invalid_argument);
+  CHECK_THROWS_AS(ThetaIntegrator(ops, 1.0, HUGE_VAL), std::invalid_argument);
 }

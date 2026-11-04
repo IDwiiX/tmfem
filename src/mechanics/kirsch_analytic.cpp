@@ -6,12 +6,12 @@ namespace tmfem {
 
 double theta_from_y(const Eigen::Vector2d& x_m) { return std::atan2(x_m(0), x_m(1)); }
 
-Eigen::Vector3d kirsch_stress_polar(const KirschPlate& k, double r_m, double t) {
+Eigen::Vector3d kirsch_stress_polar(const KirschPlate& k, double r_m, double theta_rad) {
   const double S = k.S_Pa;
   const double q2 = (k.a_m / r_m) * (k.a_m / r_m), q4 = q2 * q2;
-  return {S / 2 * (1 - q2) + S / 2 * (1 - 4 * q2 + 3 * q4) * std::cos(2 * t),
-          S / 2 * (1 + q2) - S / 2 * (1 + 3 * q4) * std::cos(2 * t),
-          -S / 2 * (1 + 2 * q2 - 3 * q4) * std::sin(2 * t)};
+  return {S / 2 * (1 - q2) + S / 2 * (1 - 4 * q2 + 3 * q4) * std::cos(2 * theta_rad),
+          S / 2 * (1 + q2) - S / 2 * (1 + 3 * q4) * std::cos(2 * theta_rad),
+          -S / 2 * (1 + 2 * q2 - 3 * q4) * std::sin(2 * theta_rad)};
 }
 
 Eigen::Vector3d kirsch_stress_cartesian(const KirschPlate& k, const Eigen::Vector2d& x_m) {
@@ -39,10 +39,10 @@ Eigen::Vector2d kirsch_displacement(const KirschPlate& k, const ElasticMaterial&
   return {u_r * st + u_t * ct, u_r * ct - u_t * st};
 }
 
-Eigen::Vector3d cartesian_to_polar_from_y(const Eigen::Vector3d& s, double t) {
-  const Eigen::Vector2d er(std::sin(t), std::cos(t)), et(std::cos(t), -std::sin(t));
+Eigen::Vector3d cartesian_to_polar_from_y(const Eigen::Vector3d& sigma, double theta_rad) {
+  const Eigen::Vector2d er(std::sin(theta_rad), std::cos(theta_rad)), et(std::cos(theta_rad), -std::sin(theta_rad));
   Eigen::Matrix2d sig;
-  sig << s(0), s(2), s(2), s(1);
+  sig << sigma(0), sigma(2), sigma(2), sigma(1);
   return {er.dot(sig * er), et.dot(sig * et), er.dot(sig * et)};
 }
 

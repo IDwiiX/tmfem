@@ -28,3 +28,10 @@ TEST_CASE("read_numeric_csv rejects a row with extra columns", "[phase1][io]") {
   const auto path = write_file("extra_column.csv", "a,b\n1,2\n3,4,5\n");
   CHECK_THROWS_AS(read_numeric_csv(path, 2), std::runtime_error);
 }
+
+TEST_CASE("read_numeric_csv treats a blank CRLF line as blank", "[phase1][io]") {
+  const auto path = write_file("crlf.csv", "a,b\r\n1,2\r\n\r\n3,4\r\n");
+  const auto cols = read_numeric_csv(path, 2);
+  REQUIRE(cols[0].size() == 2);
+  CHECK(cols[1][1] == 4.0);
+}

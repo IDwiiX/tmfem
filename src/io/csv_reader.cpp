@@ -15,6 +15,7 @@ std::vector<std::vector<double>> read_numeric_csv(const std::filesystem::path& p
   std::string line;
   bool header_seen = false;
   while (std::getline(in, line)) {
+    if (!line.empty() && line.back() == '\r') line.pop_back();  // file with Windows line endings
     if (line.empty() || line[0] == '#') continue;
     if (!header_seen) {
       header_seen = true;

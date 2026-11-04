@@ -1,5 +1,6 @@
 #include "mechanics/tensile_fit.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <stdexcept>

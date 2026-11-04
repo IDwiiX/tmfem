@@ -18,6 +18,8 @@ constexpr double kDampingFactor = 3.0;
 constexpr double kMinDamping = 1e-15;
 constexpr double kMaxDamping = 1e20;
 constexpr double kRelativeStepTolerance = 1e-14;
+// The log-log fit skips points this close to alpha = 0, where ln(alpha) is dominated by data round-off.
+constexpr double kMinFitAlpha = 1e-6;
 
 using Vec3 = Eigen::Vector3d;
 
@@ -120,7 +122,7 @@ LudwikParams fit_ludwik_loglog(const std::vector<double>& alpha, const std::vect
   if (alpha.size() != sigma_Pa.size()) throw std::invalid_argument("fit_ludwik_loglog: columns differ in length");
   double n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
   for (std::size_t i = 0; i < alpha.size(); ++i) {
-    if (!(alpha[i] > 1e-6) || !(sigma_Pa[i] > sigma_y0_Pa)) continue;
+    if (!(alpha[i] > kMinFitAlpha) || !(sigma_Pa[i] > sigma_y0_Pa)) continue;
     const double x = std::log(alpha[i]), y = std::log(sigma_Pa[i] - sigma_y0_Pa);
     n += 1;
     sx += x;

@@ -45,6 +45,9 @@ TabulatedHardening::TabulatedHardening(std::vector<double> alpha, std::vector<do
 TabulatedHardening TabulatedHardening::from_true_curve(const std::vector<double>& eps_true,
                                                        const std::vector<double>& sigma_true_Pa, double E_Pa,
                                                        double sigma_start_Pa) {
+  if (eps_true.size() != sigma_true_Pa.size()) {
+    throw std::invalid_argument("TabulatedHardening::from_true_curve: columns differ in length");
+  }
   std::vector<double> alpha, sigma;
   for (std::size_t i = 0; i < eps_true.size(); ++i) {
     if (sigma_true_Pa[i] < sigma_start_Pa) continue;

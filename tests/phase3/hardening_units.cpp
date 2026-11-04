@@ -47,3 +47,9 @@ TEST_CASE("Ludwik hardening slope matches finite differences", "[phase3]") {
   CHECK(std::isinf(h.slope_Pa(0.0)));
   CHECK(h.yield_stress_Pa(0.0) == 310.86e6);
 }
+
+TEST_CASE("from_true_curve rejects columns of different lengths", "[phase3]") {
+  const std::vector<double> eps{0.0015, 0.01, 0.02};  // valid alpha, so only the length is wrong
+  const std::vector<double> sigma_Pa{300e6, 310e6};
+  CHECK_THROWS_AS(TabulatedHardening::from_true_curve(eps, sigma_Pa, 200e9, 300e6), std::invalid_argument);
+}

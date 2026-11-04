@@ -111,6 +111,7 @@ double student_t95(int dof) {
 
 LudwikParams fit_ludwik_loglog(const std::vector<double>& alpha, const std::vector<double>& sigma_Pa,
                                double sigma_y0_Pa) {
+  if (alpha.size() != sigma_Pa.size()) throw std::invalid_argument("fit_ludwik_loglog: columns differ in length");
   double n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
   for (std::size_t i = 0; i < alpha.size(); ++i) {
     if (!(alpha[i] > 1e-6) || !(sigma_Pa[i] > sigma_y0_Pa)) continue;

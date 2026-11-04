@@ -37,6 +37,10 @@ std::filesystem::path mesh_path(const BeamBlockCase& c, double s_mm) {
 }
 
 BeamMaterial load_material(const nlohmann::json& j) {
+  const auto strength_type = j.at("strength").at("type").get<std::string>();
+  if (strength_type != "ductile" && strength_type != "brittle") {
+    throw std::runtime_error("thermomech2d: strength type must be ductile or brittle, not '" + strength_type + "'");
+  }
   BeamMaterial m{j.at("name").get<std::string>(),
                  j.at("rho_kg_m3").get<double>(),
                  j.at("c_J_kgK").get<double>(),
@@ -44,7 +48,7 @@ BeamMaterial load_material(const nlohmann::json& j) {
                  j.at("alpha_per_K").get<double>(),
                  j.at("E_GPa").get<double>() * kPaPerGPa,
                  j.at("nu").get<double>(),
-                 j.at("strength").at("type").get<std::string>() == "ductile",
+                 strength_type == "ductile",
                  0.0,
                  0.0,
                  0.0,

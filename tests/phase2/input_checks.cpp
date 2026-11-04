@@ -7,6 +7,7 @@
 #include <string>
 
 #include "io/csv_writer.hpp"
+#include "io/vtu_writer.hpp"
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/elastoplastic2d.hpp"
 #include "mechanics/elasticity.hpp"
@@ -77,4 +78,11 @@ TEST_CASE("elasticity_matrix rejects an unphysical material", "[phase2][mechanic
 TEST_CASE("write_csv reports a failed write", "[phase2][io]") {
   if (!std::filesystem::exists("/dev/full")) SKIP("needs /dev/full");
   CHECK_THROWS_AS(write_csv("/dev/full", {"a"}, {{1.0}}), std::runtime_error);
+}
+
+TEST_CASE("write_vtu reports a failed write", "[phase2][io]") {
+  if (!std::filesystem::exists("/dev/full")) SKIP("needs /dev/full");
+  Mesh mesh;
+  mesh.x_m = NodeMatrix::Zero(1, 2);
+  CHECK_THROWS_AS(write_vtu("/dev/full", mesh, {}, {}), std::runtime_error);
 }

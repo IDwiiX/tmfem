@@ -73,6 +73,8 @@ void write_vtu(const std::filesystem::path& path, const Mesh& mesh, const std::v
     out << "</DataArray>\n";
   }
   out << "</PointData>\n</Piece>\n</UnstructuredGrid>\n</VTKFile>\n";
+  out.flush();
+  if (!out) throw std::runtime_error("write_vtu: write failed for " + path.string());
 }
 
 }  // namespace tmfem

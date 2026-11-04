@@ -40,6 +40,7 @@ int nearest_node(const IntervalMesh& mesh, double x_m) {
 
 double interpolate(const IntervalMesh& mesh, const std::vector<double>& nodal, double x_m) {
   const auto& x = mesh.x_m;
+  if (nodal.size() != x.size()) throw std::invalid_argument("interpolate: one nodal value per node expected");
   if (x_m < x.front() || x_m > x.back()) {
     throw std::out_of_range("interpolate: x outside the mesh");
   }

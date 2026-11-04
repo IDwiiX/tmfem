@@ -1,9 +1,11 @@
 #include "mechanics/elastoplastic2d.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 #include "fem/assembly.hpp"
 #include "fem/element_geometry.hpp"

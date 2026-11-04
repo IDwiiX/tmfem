@@ -12,6 +12,12 @@ namespace {
 // column (1) differ by 1e8 and J^T J would be needlessly ill-conditioned. Inputs and outputs stay in Pa.
 constexpr double kScale = 1e6;
 constexpr int kMaxIterations = 500;
+// Levenberg-Marquardt damping: start value, the factor it changes by, and its limits.
+constexpr double kInitialDamping = 1e-3;
+constexpr double kDampingFactor = 3.0;
+constexpr double kMinDamping = 1e-15;
+constexpr double kMaxDamping = 1e20;
+constexpr double kRelativeStepTolerance = 1e-14;
 
 using Vec3 = Eigen::Vector3d;
 
@@ -65,7 +71,7 @@ Solution levenberg_marquardt(const std::vector<double>& a, const std::vector<dou
                              const std::vector<int>& idx) {
   Eigen::MatrixXd J;
   Eigen::VectorXd r;
-  double mu = 1e-3;
+  double mu = kInitialDamping;
   int it = 0;
   for (; it < kMaxIterations; ++it) {
     evaluate(p, a, s, idx, J, r);
@@ -74,7 +80,7 @@ Solution levenberg_marquardt(const std::vector<double>& a, const std::vector<dou
     const double S = r.squaredNorm();
     bool accepted = false;
     Eigen::VectorXd d;
-    while (mu < 1e20) {
+    while (mu < kMaxDamping) {
       Eigen::MatrixXd M = A;
       M.diagonal() += mu * A.diagonal();
       d = M.ldlt().solve(g);
@@ -82,14 +88,14 @@ Solution levenberg_marquardt(const std::vector<double>& a, const std::vector<dou
       for (std::size_t k = 0; k < idx.size(); ++k) trial(idx[k]) += d(static_cast<Eigen::Index>(k));
       if (rss(trial, a, s) < S) {
         p = trial;
-        mu = std::max(mu / 3.0, 1e-15);
+        mu = std::max(mu / kDampingFactor, kMinDamping);
         accepted = true;
         break;
       }
-      mu *= 3.0;
+      mu *= kDampingFactor;
     }
     // Stop when no step lowers the sum of squares or the step is at round-off.
-    if (!accepted || d.norm() <= 1e-14 * (1.0 + p.norm())) break;
+    if (!accepted || d.norm() <= kRelativeStepTolerance * (1.0 + p.norm())) break;
   }
   evaluate(p, a, s, idx, J, r);
   return {p, J, r, it};

@@ -30,3 +30,8 @@ TEST_CASE("Gmsh reader names a truncated node block", "[phase2][mesh]") {
   const auto path = write_file("truncated.msh", "$MeshFormat\n4.1 0 8\n$EndMeshFormat\n$Nodes\n1 3 1 3\n2 1 0 3\n1\n2\n");
   CHECK_THROWS_WITH(read_gmsh41(path), ContainsSubstring("truncated"));
 }
+
+TEST_CASE("Gmsh reader requires a $MeshFormat section", "[phase2][mesh]") {
+  const auto path = write_file("no_format.msh", "$Nodes\n1 1 1 1\n0 1 0 1\n1\n0 0 0\n$EndNodes\n");
+  CHECK_THROWS_WITH(read_gmsh41(path), ContainsSubstring("$MeshFormat"));
+}

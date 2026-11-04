@@ -182,11 +182,12 @@ Mesh read_gmsh41(const std::filesystem::path& path) {
   EntityPhysicals physicals;
   std::vector<std::size_t> tags;
   std::vector<std::array<double, 3>> xyz;
-  bool have_nodes = false;
+  bool have_format = false, have_nodes = false;
   std::string section;
   while (in >> section) {
     if (section == "$MeshFormat") {
       read_format(in);
+      have_format = true;
     } else if (section == "$PhysicalNames") {
       read_physical_names(in, mesh);
     } else if (section == "$Entities") {
@@ -219,6 +220,7 @@ Mesh read_gmsh41(const std::filesystem::path& path) {
       fail("unexpected token '" + section + "'");
     }
   }
+  if (!have_format) fail("no $MeshFormat section in " + path.string());
   if (!have_nodes) fail("no $Nodes section in " + path.string());
   return mesh;
 }

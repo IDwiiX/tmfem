@@ -26,15 +26,20 @@ PlaneCondition plane_condition(const std::string& s) {
   throw std::runtime_error("case: plane must be plane_stress or plane_strain, not '" + s + "'");
 }
 
+int displacement_component(const std::string& s) {
+  if (s == "x") return 0;
+  if (s == "y") return 1;
+  throw std::runtime_error("case: component must be x or y, not '" + s + "'");
+}
+
 void add_boundary_condition(const nlohmann::json& j, std::vector<DisplacementBC>& displacements,
                             std::vector<TractionBC>& tractions) {
   const auto type = j.at("type").get<std::string>();
   const auto physical = j.at("physical").get<std::string>();
   if (type == "displacement") {
-    const auto comp = j.at("component").get<std::string>();
-    if (comp != "x" && comp != "y") throw std::runtime_error("case: component must be x or y");
+    const int component = displacement_component(j.at("component").get<std::string>());
     const double v = j.at("value_m").get<double>();
-    displacements.push_back({physical, comp == "x" ? 0 : 1, [v](const Eigen::Vector2d&) { return v; }});
+    displacements.push_back({physical, component, [v](const Eigen::Vector2d&) { return v; }});
   } else if (type == "traction") {
     const Eigen::Vector2d t = vector2(j.at("traction_MPa")) * kPaPerMPa;
     tractions.push_back({physical, [t](const Eigen::Vector2d&) { return t; }});

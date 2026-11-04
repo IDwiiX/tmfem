@@ -191,9 +191,8 @@ BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, con
                   {},
                   base_dir / j.at("output_dir").get<std::string>()};
   for (const auto& s : j.at("supports")) {
-    const auto comp = s.at("component").get<std::string>();
-    if (comp != "x" && comp != "y") throw std::runtime_error("thermomech2d: support component must be x or y");
-    c.supports.push_back({s.at("physical").get<std::string>(), comp == "x" ? 0 : 1, [](const Eigen::Vector2d&) { return 0.0; }});
+    const int component = displacement_component(s.at("component").get<std::string>());
+    c.supports.push_back({s.at("physical").get<std::string>(), component, [](const Eigen::Vector2d&) { return 0.0; }});
   }
   require_valid_time_grid(c);
   return c;

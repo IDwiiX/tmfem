@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <string>
 
+#include "core/constants.hpp"
 #include "mesh/gmsh_reader.hpp"
 #include "phase4/phase4_common.hpp"
 #include "support/validation_record.hpp"
@@ -64,14 +65,14 @@ TEST_CASE("P4-f (i) steady slab with source and Robin faces", "[phase4][P4-f]") 
 
 TEST_CASE("P4-f (ii) discrete energy balance with source, curved Robin rim and face sink", "[phase4][P4-f]") {
   const double b = test::kDisk_b_m, k = 400.0, tau = 1.0;
-  const auto T_inf = [tau](double t) { return 293.15 + 20.0 * std::sin(2 * M_PI * t / tau); };
+  const auto T_inf = [tau](double t) { return 293.15 + 20.0 * std::sin(2 * kPi * t / tau); };
   for (const int t_nodes : {3, 6}) {
     Heat2DProblem p;
     p.mesh = read_gmsh41(test::disk_mesh(t_nodes, 2));
     p.k_W_mK = k;
     p.rho_c_J_m3K = kRhoC;
     p.source_W_m3 = [b, tau](const Eigen::Vector2d& x, double t) {
-      return 1e8 * std::exp(-x.squaredNorm() / (2 * (b / 4) * (b / 4))) * (1 + 0.5 * std::cos(2 * M_PI * t / tau));
+      return 1e8 * std::exp(-x.squaredNorm() / (2 * (b / 4) * (b / 4))) * (1 + 0.5 * std::cos(2 * kPi * t / tau));
     };
     p.convection = {{"rim", 50.0, T_inf}};
     p.face_cooling = FaceCooling{10.0, 0.005, T_inf};

@@ -5,7 +5,7 @@ results/
 references/original/
 __pycache__/
 *.pyc
-# LaTeX build products (report/main.pdf is built with latexmk, not committed)
+# LaTeX build products. report/main.pdf is the one exception: the compiled report is committed.
 report/*.aux
 report/*.bbl
 report/*.blg
@@ -14,3 +14,4 @@ report/*.fls
 report/*.log
 report/*.out
 report/*.pdf
+!report/main.pdf

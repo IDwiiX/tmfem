@@ -74,8 +74,4 @@ struct FieldError {
 FieldError field_l2_error(const Mesh& mesh, const std::string& region, const Eigen::VectorXd& T,
                           const ScalarField& exact, int n_gauss = 5);
 
-// T_h at a physical point (mean over the containing cells); std::nullopt if outside.
-std::optional<double> field_at_point(const Mesh& mesh, const std::string& region, const Eigen::VectorXd& T,
-                                     const Eigen::Vector2d& x_m);
-
 }  // namespace tmfem

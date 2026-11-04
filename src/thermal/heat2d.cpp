@@ -209,21 +209,4 @@ FieldError field_l2_error(const Mesh& mesh, const std::string& region, const Eig
   return {std::sqrt(e2), std::sqrt(n2), std::sqrt(area / n_cells)};
 }
 
-std::optional<double> field_at_point(const Mesh& mesh, const std::string& region, const Eigen::VectorXd& T,
-                                     const Eigen::Vector2d& x_m) {
-  double sum = 0.0;
-  int found = 0;
-  for (const CellBlock* b : mesh.blocks_of(region)) {
-    for (int e = 0; e < b->nodes.rows(); ++e) {
-      const auto xi = inverse_map(b->type, mesh.cell_coordinates(*b, e), x_m);
-      if (!xi) continue;
-      const ShapeEval s = shape(b->type, *xi);
-      for (Eigen::Index a = 0; a < s.N.size(); ++a) sum += s.N(a) * T(b->nodes(e, a));
-      ++found;
-    }
-  }
-  if (found == 0) return std::nullopt;
-  return sum / found;
-}
-
 }  // namespace tmfem

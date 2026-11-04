@@ -1,6 +1,7 @@
 #include <exception>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,9 @@ int run_heat1d(const std::filesystem::path& case_path) {
   }
   std::vector<std::string> comments{"case " + case_path.string()};
   for (std::size_t p = 0; p < c.probes_m.size(); ++p) {
-    comments.push_back("x" + std::to_string(p) + " = " + std::to_string(c.probes_m[p]) + " m");
+    std::ostringstream position;  // not std::to_string: its fixed 6 decimals print 1e-7 m as 0.000000
+    position << c.probes_m[p];
+    comments.push_back("x" + std::to_string(p) + " = " + position.str() + " m");
   }
   tmfem::write_csv(c.output_csv, header, columns, comments);
   std::cout << "wrote " << c.output_csv.string() << " (" << h.t_s.size() << " rows)\n";

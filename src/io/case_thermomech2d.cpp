@@ -169,10 +169,7 @@ void write_history(const std::filesystem::path& path, const std::vector<BeamSnap
 }  // namespace
 
 BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, const std::filesystem::path& base_dir) {
-  const nlohmann::json j = read_json(json_path);
-  if (j.at("case_type").get<std::string>() != "thermomech2d") {
-    throw std::runtime_error("load_thermomech2d_case: case_type is not thermomech2d in " + json_path.string());
-  }
+  const nlohmann::json j = read_case_json(json_path, "thermomech2d");
   const auto& beam = j.at("beam");
   const auto& cool = j.at("cooling");
   BeamBlockCase c{(base_dir / j.at("mesh_pattern").get<std::string>()).string(),

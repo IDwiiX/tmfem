@@ -51,10 +51,7 @@ void add_boundary_condition(const nlohmann::json& j, std::vector<DisplacementBC>
 }
 
 Elastic2DCase load_elastic2d_case(const std::filesystem::path& json_path, const std::filesystem::path& base_dir) {
-  const nlohmann::json j = read_json(json_path);
-  if (j.at("case_type").get<std::string>() != "elastic2d") {
-    throw std::runtime_error("load_elastic2d_case: case_type is not elastic2d in " + json_path.string());
-  }
+  const nlohmann::json j = read_case_json(json_path, "elastic2d");
   Elastic2DCase c{{read_gmsh41(base_dir / j.at("mesh").get<std::string>()),
                    {j.at("material").at("E_GPa").get<double>() * kPaPerGPa, j.at("material").at("nu").get<double>()},
                    plane_condition(j.at("plane").get<std::string>()),

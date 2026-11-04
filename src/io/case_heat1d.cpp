@@ -45,10 +45,7 @@ BoundaryCondition boundary(const nlohmann::json& j, const std::filesystem::path&
 }  // namespace
 
 Heat1DCase load_heat1d_case(const std::filesystem::path& json_path, const std::filesystem::path& base_dir) {
-  const nlohmann::json j = read_json(json_path);
-  if (j.at("case_type").get<std::string>() != "heat1d") {
-    throw std::runtime_error("load_heat1d_case: case_type is not heat1d in " + json_path.string());
-  }
+  const nlohmann::json j = read_case_json(json_path, "heat1d");
   const auto& mesh = j.at("mesh");
   const auto& mat = j.at("material");
   const auto& time = j.at("time");

@@ -15,6 +15,7 @@ std::vector<std::vector<double>> read_numeric_csv(const std::filesystem::path& p
   std::string line;
   bool header_seen = false;
   while (std::getline(in, line)) {
+    if (!line.empty() && line.back() == '\r') line.pop_back();  // file with Windows line endings
     if (line.empty() || line[0] == '#') continue;
     if (!header_seen) {
       header_seen = true;
@@ -27,6 +28,8 @@ std::vector<std::vector<double>> read_numeric_csv(const std::filesystem::path& p
       if (!(row >> v)) throw std::runtime_error("read_numeric_csv: bad row '" + line + "' in " + path.string());
       c.push_back(v);
     }
+    std::string extra;
+    if (row >> extra) throw std::runtime_error("read_numeric_csv: extra column in '" + line + "' in " + path.string());
   }
   return cols;
 }

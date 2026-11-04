@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "core/constants.hpp"
 #include "io/csv_writer.hpp"
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/error_norms.hpp"
@@ -74,7 +75,7 @@ TEST_CASE("P4-c P4-d thin disk stresses", "[phase4][P4-c][P4-d]") {
   const Elastic2DProblem p = disk_problem(6, test::kP4Levels - 1, d);
   const Elastic2DSolution sol = solve_elastic2d(p);
   const double scale = d.m.E_Pa * d.alpha * d.dT;
-  const double th = 30.0 * M_PI / 180.0;
+  const double th = 30.0 * kPi / 180.0;
 
   int rim_node = -1;  // rim node nearest to the ray
   double best = 1e30;

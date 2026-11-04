@@ -27,6 +27,14 @@ void write_csv(const std::filesystem::path& path, const std::vector<std::string>
     }
     out << '\n';
   }
+  out.flush();
+  if (!out) throw std::runtime_error("write_csv: write failed for " + path.string());
+}
+
+std::vector<double> matrix_column(const Eigen::MatrixXd& m, Eigen::Index c) {
+  std::vector<double> v(static_cast<std::size_t>(m.rows()));
+  for (Eigen::Index i = 0; i < m.rows(); ++i) v[static_cast<std::size_t>(i)] = m(i, c);
+  return v;
 }
 
 }  // namespace tmfem

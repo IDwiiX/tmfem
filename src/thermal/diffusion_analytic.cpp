@@ -3,28 +3,36 @@
 #include <cmath>
 #include <stdexcept>
 
+#include "core/constants.hpp"
+
 namespace tmfem {
 
 namespace {
-const double kPi = std::acos(-1.0);
-}
+
+// erfinv: bisection on [0, kErfUpperBracket] (erf(6) is 1 to machine precision), then Newton.
+constexpr double kErfUpperBracket = 6.0;
+constexpr int kErfBisections = 30;
+constexpr int kErfNewtonSteps = 10;
+constexpr double kErfRelativeStep = 1e-16;
+
+}  // namespace
 
 double erfinv(double y) {
   if (!(std::abs(y) < 1.0)) throw std::domain_error("erfinv: need |y| < 1");
   if (y == 0.0) return 0.0;
   // Bisection to a good bracket, then Newton: d erf / dz = 2/sqrt(pi) exp(-z^2).
   double lo = 0.0;
-  double hi = 6.0;
+  double hi = kErfUpperBracket;
   const double target = std::abs(y);
-  for (int i = 0; i < 30; ++i) {
+  for (int i = 0; i < kErfBisections; ++i) {
     const double mid = 0.5 * (lo + hi);
     (std::erf(mid) < target ? lo : hi) = mid;
   }
   double z = 0.5 * (lo + hi);
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < kErfNewtonSteps; ++i) {
     const double dz = (std::erf(z) - target) / (2.0 / std::sqrt(kPi) * std::exp(-z * z));
     z -= dz;
-    if (std::abs(dz) < 1e-16 * z) break;
+    if (std::abs(dz) < kErfRelativeStep * z) break;
   }
   return y > 0.0 ? z : -z;
 }

@@ -1,7 +1,7 @@
 #include "fem/dirichlet.hpp"
 
-#include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 namespace tmfem {
 

@@ -9,6 +9,7 @@
 #include "io/csv_reader.hpp"
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
+#include "io/units.hpp"
 #include "io/vtu_writer.hpp"
 #include "mechanics/hardening.hpp"
 #include "mechanics/j2_plasticity.hpp"
@@ -17,9 +18,6 @@
 namespace tmfem {
 
 namespace {
-
-constexpr double kPaPerMPa = 1e6;
-constexpr double kPaPerGPa = 1e9;
 
 std::shared_ptr<const HardeningLaw> hardening_law(const nlohmann::json& j, double E_Pa,
                                                   const std::filesystem::path& base_dir) {
@@ -41,10 +39,7 @@ std::shared_ptr<const HardeningLaw> hardening_law(const nlohmann::json& j, doubl
 
 Elastoplastic2DCase load_elastoplastic2d_case(const std::filesystem::path& json_path,
                                               const std::filesystem::path& base_dir) {
-  const nlohmann::json j = read_json(json_path);
-  if (j.at("case_type").get<std::string>() != "elastoplastic2d") {
-    throw std::runtime_error("load_elastoplastic2d_case: case_type is not elastoplastic2d in " + json_path.string());
-  }
+  const nlohmann::json j = read_case_json(json_path, "elastoplastic2d");
   const ElasticMaterial m{j.at("material").at("E_GPa").get<double>() * kPaPerGPa, j.at("material").at("nu").get<double>()};
   Elastoplastic2DCase c{{read_gmsh41(base_dir / j.at("mesh").get<std::string>()),
                          std::make_shared<J2Plasticity>(m, hardening_law(j.at("hardening"), m.E_Pa, base_dir)),

@@ -3,13 +3,13 @@
 #include <cmath>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace tmfem {
 
 namespace {
 
 const double kSqrt32 = std::sqrt(1.5);
-const Voigt4 kM(1.0, 1.0, 1.0, 0.0);
 
 // A trial state counts as plastic only if f_trial exceeds this fraction of sigma_y: a converged point
 // lying exactly on the yield surface must stay elastic when re-evaluated (section 5, step 2).
@@ -17,6 +17,8 @@ constexpr double kYieldTolerance = 1e-12;
 // Scalar Newton stops at |r| <= this fraction of the initial yield stress (about 3e-4 Pa here).
 constexpr double kMultiplierTolerance = 1e-12;
 constexpr int kMaxMultiplierIterations = 200;
+// Below this relative bracket width r cannot get smaller: round-off.
+constexpr double kMultiplierBracketRoundoff = 1e-17;
 
 // Norm of a stress-like deviator: the xy entry appears twice in s:s.
 double deviator_norm(const Voigt4& s) { return std::sqrt(s(0) * s(0) + s(1) * s(1) + s(2) * s(2) + 2.0 * s(3) * s(3)); }
@@ -35,7 +37,7 @@ PlasticMultiplier solve_plastic_multiplier(const HardeningLaw& h, double G_Pa, d
     (r > 0.0 ? lo : hi) = dg;
     const double newton = dg + r / (3.0 * G_Pa + h.slope_Pa(alpha_n + dg));
     dg = (newton > lo && newton < hi) ? newton : 0.5 * (lo + hi);
-    if (hi - lo <= 1e-17 * hi) return {dg, it};  // bracket at round-off: r cannot get smaller
+    if (hi - lo <= kMultiplierBracketRoundoff * hi) return {dg, it};
   }
   throw std::runtime_error("solve_plastic_multiplier: no convergence in " + std::to_string(kMaxMultiplierIterations) +
                            " iterations");
@@ -79,7 +81,8 @@ MaterialUpdate J2Plasticity::update(const Voigt4& eps, const MaterialState& conv
   const double ratio = 3.0 * G_ * dg / q_trial;
   const double theta = 1.0 - ratio;
   const double theta_bar = 3.0 * G_ / (3.0 * G_ + H) - ratio;
-  out.tangent_Pa = K_b_ * kM * kM.transpose() + 2.0 * G_ * theta * I_dev_ - 2.0 * G_ * theta_bar * n * n.transpose();
+  const Voigt4 m = identity_voigt4();
+  out.tangent_Pa = K_b_ * m * m.transpose() + 2.0 * G_ * theta * I_dev_ - 2.0 * G_ * theta_bar * n * n.transpose();
   return out;
 }
 

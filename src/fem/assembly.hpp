@@ -18,6 +18,9 @@ using CellVectorKernel = std::function<Eigen::VectorXd(CellType type, const Eige
 // Global dofs of one cell, in element order.
 std::vector<int> cell_dofs(const CellBlock& block, int cell, int n_comp);
 
+// Entries of a global vector at the given dofs.
+Eigen::VectorXd gather(const Eigen::VectorXd& u, const std::vector<int>& dofs);
+
 // Sum of element matrices over the given blocks (triplets pushed in block and cell order, so the
 // result is deterministic). Size n_comp * n_nodes.
 Eigen::SparseMatrix<double> assemble_matrix(const Mesh& mesh, const std::vector<const CellBlock*>& blocks,

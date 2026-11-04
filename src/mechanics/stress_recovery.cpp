@@ -8,19 +8,12 @@ namespace tmfem {
 
 namespace {
 
-Eigen::VectorXd cell_displacements(const CellBlock& block, int cell, const Eigen::VectorXd& u_m) {
-  const std::vector<int> dofs = cell_dofs(block, cell, 2);
-  Eigen::VectorXd u_e(static_cast<Eigen::Index>(dofs.size()));
-  for (std::size_t i = 0; i < dofs.size(); ++i) u_e(static_cast<Eigen::Index>(i)) = u_m(dofs[i]);
-  return u_e;
-}
-
 // D B u_e - beta dT_h(xi) m (docs/learning/phase4.md section 9; the thermal term is 0 without p.thermal).
 Eigen::Vector3d stress_in_cell(const Elastic2DProblem& p, const Eigen::Matrix3d& D, const CellBlock& block, int cell,
                                const Eigen::VectorXd& u_m, const Eigen::Vector2d& xi) {
   const ShapeEval s = shape(block.type, xi);
   const CellGeometry g = cell_geometry(s, p.mesh.cell_coordinates(block, cell));
-  Eigen::Vector3d sigma = D * strain_displacement(g.dN_dx) * cell_displacements(block, cell, u_m);
+  Eigen::Vector3d sigma = D * strain_displacement(g.dN_dx) * gather(u_m, cell_dofs(block, cell, 2));
   if (p.thermal) {
     const double dT = s.N.dot(cell_temperature_rise(*p.thermal, block, cell));
     sigma -= p.beta() * dT * Eigen::Vector3d(1.0, 1.0, 0.0);

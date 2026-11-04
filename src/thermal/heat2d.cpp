@@ -25,8 +25,8 @@ void require_edge(CellType type, const char* who) {
 QuadRuleTri conductivity_rule(CellType type) { return triangle_rule(type == CellType::Tri3 ? 1 : 3); }
 QuadRuleTri capacity_rule(CellType type) { return triangle_rule(type == CellType::Tri3 ? 3 : 6); }
 
-// Sum over the edges of the given physical groups of the element vector int N ds (unit value).
-Eigen::VectorXd unit_edge_vector(const Mesh& mesh, const std::string& physical, double value) {
+// Global vector int value N ds over the edges of one physical group.
+Eigen::VectorXd edge_load_vector(const Mesh& mesh, const std::string& physical, double value) {
   Eigen::VectorXd f = Eigen::VectorXd::Zero(mesh.n_nodes());
   assemble_vector(mesh, mesh.blocks_of(physical), 1,
                   [value](CellType type, const Eigen::MatrixXd& x_e) { return edge_load(type, x_e, value); }, f);
@@ -119,10 +119,11 @@ ThermalOperators build_operators(const Heat2DProblem& p) {
     const double h = c.h_W_m2K;
     ops.A += assemble_matrix(mesh, mesh.blocks_of(c.physical), 1,
                              [h](CellType t, const Eigen::MatrixXd& x) { return edge_robin_matrix(t, x, h); });
-    loads.emplace_back(unit_edge_vector(mesh, c.physical, h), c.T_inf_K);
+    loads.emplace_back(edge_load_vector(mesh, c.physical, h), c.T_inf_K);
   }
-  for (const FluxBC2D& f : p.fluxes) loads.emplace_back(unit_edge_vector(mesh, f.physical, 1.0), f.q_in_W_m2);
+  for (const FluxBC2D& f : p.fluxes) loads.emplace_back(edge_load_vector(mesh, f.physical, 1.0), f.q_in_W_m2);
   if (p.face_cooling) {
+    if (p.face_cooling->thickness_m <= 0.0) throw std::invalid_argument("FaceCooling: thickness must be positive");
     const double c = 2.0 * p.face_cooling->h_W_m2K / p.face_cooling->thickness_m;
     ops.A += assemble_matrix(mesh, cells, 1,
                              [c](CellType t, const Eigen::MatrixXd& x) { return element_capacity(t, x, c); });
@@ -206,23 +207,6 @@ FieldError field_l2_error(const Mesh& mesh, const std::string& region, const Eig
     }
   }
   return {std::sqrt(e2), std::sqrt(n2), std::sqrt(area / n_cells)};
-}
-
-std::optional<double> field_at_point(const Mesh& mesh, const std::string& region, const Eigen::VectorXd& T,
-                                     const Eigen::Vector2d& x_m) {
-  double sum = 0.0;
-  int found = 0;
-  for (const CellBlock* b : mesh.blocks_of(region)) {
-    for (int e = 0; e < b->nodes.rows(); ++e) {
-      const auto xi = inverse_map(b->type, mesh.cell_coordinates(*b, e), x_m);
-      if (!xi) continue;
-      const ShapeEval s = shape(b->type, *xi);
-      for (Eigen::Index a = 0; a < s.N.size(); ++a) sum += s.N(a) * T(b->nodes(e, a));
-      ++found;
-    }
-  }
-  if (found == 0) return std::nullopt;
-  return sum / found;
 }
 
 }  // namespace tmfem

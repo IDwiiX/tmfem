@@ -18,7 +18,7 @@ TEST_CASE("Kirsch polar stress matches kirsch_sigma140MPa.csv", "[phase2][kirsch
   REQUIRE(rows.size() == 40);
   for (const auto& r : rows) {
     INFO("r/a = " << r.r_over_a << ", theta = " << r.theta_deg);
-    const Eigen::Vector3d s = kirsch_stress_polar(k, r.r_over_a * k.a_m, r.theta_deg * test::kPi / 180.0) / test::kPaPerMPa;
+    const Eigen::Vector3d s = kirsch_stress_polar(k, r.r_over_a * k.a_m, r.theta_deg * kPi / 180.0) / test::kPaPerMPa;
     CHECK(std::abs(s(0) - r.srr_MPa) < 1e-4);  // CSV has 4 decimals
     CHECK(std::abs(s(1) - r.stt_MPa) < 1e-4);
     CHECK(std::abs(s(2) - r.srt_MPa) < 1e-4);
@@ -60,7 +60,7 @@ TEST_CASE("Kirsch exact field: free hole and symmetry conditions", "[phase2][kir
   const KirschPlate k = test::kirsch_plate();
   const ElasticMaterial m = test::phase2_material();
   for (int i = 0; i <= 18; ++i) {
-    const double t = i * 5.0 * test::kPi / 180.0;
+    const double t = i * 5.0 * kPi / 180.0;
     const Eigen::Vector2d x(k.a_m * std::sin(t), k.a_m * std::cos(t));
     const Eigen::Vector3d p = cartesian_to_polar_from_y(kirsch_stress_cartesian(k, x), t);
     CHECK(std::abs(p(0)) < 1e-9 * k.S_Pa);  // sigma_rr = 0 on r = a

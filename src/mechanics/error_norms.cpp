@@ -19,9 +19,7 @@ ElasticErrors elastic_errors(const Elastic2DProblem& p, const Eigen::VectorXd& u
   for (const CellBlock* b : p.mesh.blocks_of(p.region)) {
     for (int e = 0; e < b->nodes.rows(); ++e) {
       const Eigen::MatrixXd x_e = p.mesh.cell_coordinates(*b, e);
-      const std::vector<int> dofs = cell_dofs(*b, e, 2);
-      Eigen::VectorXd u_e(static_cast<Eigen::Index>(dofs.size()));
-      for (std::size_t i = 0; i < dofs.size(); ++i) u_e(static_cast<Eigen::Index>(i)) = u_m(dofs[i]);
+      const Eigen::VectorXd u_e = gather(u_m, cell_dofs(*b, e, 2));
       for (std::size_t q = 0; q < rule.w.size(); ++q) {
         const ShapeEval s = shape(b->type, rule.xi[q]);
         const CellGeometry g = cell_geometry(s, x_e);

@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <string>
 
+#include "core/constants.hpp"
 #include "fem/line2.hpp"
 #include "fem/quadrature.hpp"
 #include "io/csv_writer.hpp"
@@ -26,7 +27,6 @@ constexpr double kTol = 0.15;  // REFERENCE_VALUES P1-m
 constexpr double kL = 1.0;
 constexpr double kAlpha = 1.0;
 constexpr double kTend = 0.1;
-const double kPi = std::acos(-1.0);
 
 Heat1DProblem sine_problem(int n_elements) {
   return {uniform_interval(kL, n_elements), kAlpha, 1.0, DirichletBC{[](double) { return 0.0; }},

@@ -17,6 +17,9 @@ struct ElasticMaterial {
   double nu;
 };
 
+// Throws unless E > 0 and -1 < nu < 1/2, the range in which the moduli are finite and positive.
+void require_valid(const ElasticMaterial& m);
+
 Eigen::Matrix3d elasticity_matrix(const ElasticMaterial& m, PlaneCondition plane);
 double shear_modulus(const ElasticMaterial& m);
 // Kolosov constant: (3 - nu)/(1 + nu) in plane stress, 3 - 4 nu in plane strain.
@@ -24,7 +27,7 @@ double kappa(const ElasticMaterial& m, PlaneCondition plane);
 
 // Out-of-plane normal stress: 0 in plane stress, nu (sigma_xx + sigma_yy) in plane strain.
 double sigma_zz(const ElasticMaterial& m, PlaneCondition plane, const Eigen::Vector3d& sigma);
-double von_mises(const Eigen::Vector3d& sigma, double sigma_zz);
+double von_mises(const Eigen::Vector3d& s, double szz);
 
 // Strain-displacement matrix B (3 x 2n) from shape-function gradients dN/dx (n x 2).
 Eigen::MatrixXd strain_displacement(const Eigen::MatrixXd& dN_dx);

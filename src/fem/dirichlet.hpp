@@ -15,9 +15,7 @@ class DirichletPartition {
  public:
   DirichletPartition(int n_dofs, std::vector<int> constrained);
 
-  int n_dofs() const { return n_dofs_; }
   int n_free() const { return static_cast<int>(free_.size()); }
-  const std::vector<int>& free_dofs() const { return free_; }
   const std::vector<int>& constrained_dofs() const { return constrained_; }
 
   SparseMatrix block_ff(const SparseMatrix& S) const;

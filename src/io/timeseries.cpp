@@ -3,10 +3,18 @@
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include "io/csv_reader.hpp"
 
 namespace tmfem {
+
+namespace {
+
+// How far outside the data range a time may lie (round-off in t), relative to the length of the range.
+constexpr double kRangeSlack = 1e-9;
+
+}  // namespace
 
 TimeSeries::TimeSeries(std::vector<double> t_s, std::vector<double> values)
     : t_(std::move(t_s)), v_(std::move(values)) {
@@ -24,7 +32,7 @@ TimeSeries TimeSeries::read_csv(const std::filesystem::path& path) {
 }
 
 double TimeSeries::operator()(double t_s) const {
-  const double slack = 1e-9 * (t_.back() - t_.front());
+  const double slack = kRangeSlack * (t_.back() - t_.front());
   if (t_s < t_.front() - slack || t_s > t_.back() + slack) {
     throw std::out_of_range("TimeSeries: t = " + std::to_string(t_s) + " s outside the data range");
   }

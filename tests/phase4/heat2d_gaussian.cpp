@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "core/constants.hpp"
 #include "io/csv_writer.hpp"
 #include "mesh/gmsh_reader.hpp"
 #include "phase4/phase4_common.hpp"
@@ -94,7 +95,7 @@ TEST_CASE("P4-e Gaussian spreading: variance and energy", "[phase4][P4-e]") {
     }
     write_csv(test::results_dir() / "phase4" / ("gaussian_profile_" + tag + ".csv"), {"x_m", "T_fe_K", "T_exact_K"},
               {xs, Ts, Tx}, {"P4-e Gaussian spreading at t_end, nodes on y = 0 (unsorted)"});
-    const double E_exact = kRhoC * kT0 * 2 * M_PI * kS0 * kS0 / 4;  // quarter of the plane
+    const double E_exact = kRhoC * kT0 * 2 * kPi * kS0 * kS0 / 4;  // quarter of the plane
     std::printf("P4-e T%d: energy drift %.2e (discrete), initial energy vs closed form %.2e (interpolation, report)\n",
                 t_nodes, worst_E, (E0 - E_exact) / E_exact);
     INFO("T" << t_nodes);

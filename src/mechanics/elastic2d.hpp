@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -15,7 +14,9 @@
 
 namespace tmfem {
 
-using ScalarField = std::function<double(const Eigen::Vector2d& x_m)>;
+// A pivot below this fraction of the largest one means the stiffness is singular to round-off. Well-posed
+// meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
+inline constexpr double kMinRelativePivot = 1e-10;
 
 // u_component = value(x) at every node of a physical group (edge or point); component 0 = x, 1 = y.
 struct DisplacementBC {

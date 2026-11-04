@@ -6,7 +6,7 @@
 #include <Eigen/SparseCholesky>
 
 #include "fem/dirichlet.hpp"
-#include "thermal/heat1d.hpp"
+#include "thermal/thermal_operators.hpp"
 
 namespace tmfem {
 
@@ -20,10 +20,9 @@ class ThetaIntegrator {
   ThetaIntegrator(const ThetaIntegrator&) = delete;
   ThetaIntegrator& operator=(const ThetaIntegrator&) = delete;
 
-  // Changes the step size and refactorises.
+  // Changes the step size and refactorises (nothing to do if it is unchanged).
   void set_dt(double dt_s);
   double dt() const { return dt_; }
-  double theta() const { return theta_; }
   const ThermalOperators& operators() const { return ops_; }
 
   // One step from (t_n, T_n) to t_n + dt.

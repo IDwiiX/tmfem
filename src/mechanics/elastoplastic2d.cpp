@@ -1,9 +1,11 @@
 #include "mechanics/elastoplastic2d.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 #include "fem/assembly.hpp"
 #include "fem/element_geometry.hpp"
@@ -13,9 +15,6 @@ namespace tmfem {
 
 namespace {
 
-// Same singularity guard as solve_elastic2d (docs/learning/phase2.md section 7).
-constexpr double kMinRelativePivot = 1e-10;
-
 std::vector<int> constrained_list(const std::map<int, double>& bc, Eigen::VectorXd& values) {
   std::vector<int> dofs;
   values.resize(static_cast<Eigen::Index>(bc.size()));
@@ -24,12 +23,6 @@ std::vector<int> constrained_list(const std::map<int, double>& bc, Eigen::Vector
     dofs.push_back(dof);
   }
   return dofs;
-}
-
-Eigen::VectorXd gather(const Eigen::VectorXd& u, const std::vector<int>& dofs) {
-  Eigen::VectorXd out(static_cast<Eigen::Index>(dofs.size()));
-  for (std::size_t i = 0; i < dofs.size(); ++i) out(static_cast<Eigen::Index>(i)) = u(dofs[i]);
-  return out;
 }
 
 }  // namespace
@@ -110,6 +103,7 @@ NewtonIterate ElastoplasticSolver::measure(const Linearization& lin, const Eigen
 }
 
 Eigen::VectorXd ElastoplasticSolver::solve_correction(const Linearization& lin, const Eigen::VectorXd& rhs_f) {
+  if (rhs_f.size() == 0) return Eigen::VectorXd();  // every dof prescribed; LDLT is not defined on an empty matrix
   const Eigen::SparseMatrix<double> K_ff = part_.block_ff(lin.K_T);
   if (!pattern_analysed_) {
     ldlt_.analyzePattern(K_ff);

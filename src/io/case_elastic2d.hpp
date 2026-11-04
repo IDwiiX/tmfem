@@ -30,6 +30,7 @@ void run_elastic2d_case(const Elastic2DCase& c);
 // Shared with the elastoplastic case: "plane_stress" / "plane_strain", and one boundary-condition object
 // (types above), converted to SI and appended to the matching list.
 PlaneCondition plane_condition(const std::string& s);
+int displacement_component(const std::string& s);  // "x" -> 0, "y" -> 1; throws otherwise
 void add_boundary_condition(const nlohmann::json& j, std::vector<DisplacementBC>& displacements,
                             std::vector<TractionBC>& tractions);
 

@@ -6,9 +6,11 @@
 #include <stdexcept>
 #include <string>
 
+#include "core/constants.hpp"
 #include "io/case_elastic2d.hpp"
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
+#include "io/units.hpp"
 #include "io/vtu_writer.hpp"
 #include "mechanics/stress_recovery.hpp"
 #include "mesh/gmsh_reader.hpp"
@@ -19,9 +21,8 @@ namespace tmfem {
 
 namespace {
 
-constexpr double kPaPerMPa = 1e6;
-constexpr double kPaPerGPa = 1e9;
-constexpr double kPi = 3.14159265358979323846;
+constexpr double kMetrePerMm = 1e-3;
+constexpr const char* kRegion = "domain";  // physical group of the block cross-section
 
 std::string format_mm(double s_mm) {
   char buf[32];
@@ -30,13 +31,18 @@ std::string format_mm(double s_mm) {
 }
 
 std::filesystem::path mesh_path(const BeamBlockCase& c, double s_mm) {
+  const std::string placeholder = "{s_mm}";
   std::string p = c.mesh_pattern;
-  const auto at = p.find("{s_mm}");
-  if (at == std::string::npos) throw std::runtime_error("thermomech2d: mesh_pattern must contain {s_mm}");
-  return p.replace(at, 6, format_mm(s_mm));
+  const auto at = p.find(placeholder);
+  if (at == std::string::npos) throw std::runtime_error("thermomech2d: mesh_pattern must contain " + placeholder);
+  return p.replace(at, placeholder.size(), format_mm(s_mm));
 }
 
 BeamMaterial load_material(const nlohmann::json& j) {
+  const auto strength_type = j.at("strength").at("type").get<std::string>();
+  if (strength_type != "ductile" && strength_type != "brittle") {
+    throw std::runtime_error("thermomech2d: strength type must be ductile or brittle, not '" + strength_type + "'");
+  }
   BeamMaterial m{j.at("name").get<std::string>(),
                  j.at("rho_kg_m3").get<double>(),
                  j.at("c_J_kgK").get<double>(),
@@ -44,7 +50,7 @@ BeamMaterial load_material(const nlohmann::json& j) {
                  j.at("alpha_per_K").get<double>(),
                  j.at("E_GPa").get<double>() * kPaPerGPa,
                  j.at("nu").get<double>(),
-                 j.at("strength").at("type").get<std::string>() == "ductile",
+                 strength_type == "ductile",
                  0.0,
                  0.0,
                  0.0,
@@ -75,7 +81,7 @@ Heat2DProblem thermal_problem(const BeamBlockCase& c, const Mesh& mesh) {
 }
 
 Elastic2DProblem mechanical_problem(const BeamBlockCase& c, const Mesh& mesh, const Eigen::VectorXd& T, double nu) {
-  return {mesh, {c.material.E_Pa, nu}, c.plane, "domain", c.supports, {},
+  return {mesh, {c.material.E_Pa, nu}, c.plane, kRegion, c.supports, {},
           ThermalStrain{c.material.alpha_per_K, c.T_ref_K, T}};
 }
 
@@ -117,10 +123,17 @@ Fields solve_snapshot(const BeamBlockCase& c, const Mesh& mesh, const Eigen::Vec
   return f;
 }
 
-std::vector<double> col(const Eigen::MatrixXd& m, Eigen::Index j, double scale = 1.0) {
-  std::vector<double> v(static_cast<std::size_t>(m.rows()));
-  for (Eigen::Index i = 0; i < m.rows(); ++i) v[static_cast<std::size_t>(i)] = m(i, j) * scale;
-  return v;
+// At least one step per stage. Cooling stages: at least one, ending after the pulse and each after the one before.
+void require_valid_time_grid(const BeamBlockCase& c) {
+  if (c.pulse_steps < 1 || c.cooling_steps < 1) {
+    throw std::runtime_error("thermomech2d: pulse_steps and steps_per_stage must be >= 1");
+  }
+  double t = c.pulse_s;
+  for (const double t_end : c.cooling_stage_ends_s) {
+    if (!(t_end > t)) throw std::runtime_error("thermomech2d: stage_ends_s must increase and follow the pulse");
+    t = t_end;
+  }
+  if (c.cooling_stage_ends_s.empty()) throw std::runtime_error("thermomech2d: stage_ends_s must not be empty");
 }
 
 void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, const Eigen::VectorXd& T, const Fields& f) {
@@ -129,36 +142,34 @@ void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, cons
   for (int i = 0; i < n; ++i) u.row(i) << f.u_m(2 * i), f.u_m(2 * i + 1), 0.0;
   const Eigen::MatrixXd s_MPa = f.stress.sigma_Pa / kPaPerMPa, s13_MPa = f.s1s3 / kPaPerMPa;
   const Eigen::MatrixXd szz_MPa = f.stress.sigma_zz_Pa / kPaPerMPa, vm_MPa = f.stress.von_mises_Pa / kPaPerMPa;
-  write_vtu(dir / "end_of_pulse.vtu", mesh, mesh.blocks_of("domain"),
+  write_vtu(dir / "end_of_pulse.vtu", mesh, mesh.blocks_of(kRegion),
             {{"temperature_K", T}, {"displacement_m", u}, {"stress_xx_yy_xy_MPa", s_MPa}, {"stress_zz_MPa", szz_MPa},
              {"von_mises_MPa", vm_MPa}, {"principal_max_min_MPa", s13_MPa}});
   write_csv(dir / "end_of_pulse_nodal.csv",
             {"x_m", "y_m", "T_K", "sxx_MPa", "syy_MPa", "sxy_MPa", "szz_MPa", "von_mises_MPa", "s1_MPa", "s3_MPa"},
-            {col(mesh.x_m, 0), col(mesh.x_m, 1), col(T, 0), col(s_MPa, 0), col(s_MPa, 1), col(s_MPa, 2), col(szz_MPa, 0),
-             col(vm_MPa, 0), col(s13_MPa, 0), col(s13_MPa, 1)},
+            {matrix_column(mesh.x_m, 0), matrix_column(mesh.x_m, 1), matrix_column(T, 0), matrix_column(s_MPa, 0),
+             matrix_column(s_MPa, 1), matrix_column(s_MPa, 2), matrix_column(szz_MPa, 0), matrix_column(vm_MPa, 0),
+             matrix_column(s13_MPa, 0), matrix_column(s13_MPa, 1)},
             {"demo D4 end of pulse, quarter model, nodal-averaged stresses"});
 }
 
 void write_history(const std::filesystem::path& path, const std::vector<BeamSnapshot>& h) {
-  std::vector<std::vector<double>> cols(9);
+  const std::vector<std::string> header{"t_s", "T_max_K", "dT_centre_K", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa",
+                                        "sxx_centre_MPa", "szz_centre_MPa", "vm_centre_MPa"};
+  std::vector<std::vector<double>> cols(header.size());
   for (const BeamSnapshot& s : h) {
     const double v[] = {s.t_s, s.T_max_K, s.dT_centre_K, s.vm_max_Pa / kPaPerMPa, s.s1_max_Pa / kPaPerMPa,
                         s.s3_min_Pa / kPaPerMPa, s.sxx_centre_Pa / kPaPerMPa, s.szz_centre_Pa / kPaPerMPa,
                         s.vm_centre_Pa / kPaPerMPa};
     for (std::size_t j = 0; j < cols.size(); ++j) cols[j].push_back(v[j]);
   }
-  write_csv(path, {"t_s", "T_max_K", "dT_centre_K", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "sxx_centre_MPa",
-                   "szz_centre_MPa", "vm_centre_MPa"},
-            cols, {"demo D4 history; first row = end of pulse"});
+  write_csv(path, header, cols, {"demo D4 history; first row = end of pulse"});
 }
 
 }  // namespace
 
 BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, const std::filesystem::path& base_dir) {
-  const nlohmann::json j = read_json(json_path);
-  if (j.at("case_type").get<std::string>() != "thermomech2d") {
-    throw std::runtime_error("load_thermomech2d_case: case_type is not thermomech2d in " + json_path.string());
-  }
+  const nlohmann::json j = read_case_json(json_path, "thermomech2d");
   const auto& beam = j.at("beam");
   const auto& cool = j.at("cooling");
   BeamBlockCase c{(base_dir / j.at("mesh_pattern").get<std::string>()).string(),
@@ -180,15 +191,15 @@ BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, con
                   {},
                   base_dir / j.at("output_dir").get<std::string>()};
   for (const auto& s : j.at("supports")) {
-    const auto comp = s.at("component").get<std::string>();
-    if (comp != "x" && comp != "y") throw std::runtime_error("thermomech2d: support component must be x or y");
-    c.supports.push_back({s.at("physical").get<std::string>(), comp == "x" ? 0 : 1, [](const Eigen::Vector2d&) { return 0.0; }});
+    const int component = displacement_component(s.at("component").get<std::string>());
+    c.supports.push_back({s.at("physical").get<std::string>(), component, [](const Eigen::Vector2d&) { return 0.0; }});
   }
+  require_valid_time_grid(c);
   return c;
 }
 
 BeamRunResult run_beam_size(const BeamBlockCase& c, double s_mm) {
-  const double s_m = s_mm * 1e-3;
+  const double s_m = s_mm * kMetrePerMm;
   const Mesh mesh = read_gmsh41(mesh_path(c, s_mm));
   const std::vector<int> centre_nodes = mesh.nodes_of("centre");
   if (centre_nodes.size() != 1) throw std::runtime_error("thermomech2d: physical point 'centre' must hold one node");
@@ -237,11 +248,16 @@ std::vector<BeamRunResult> run_thermomech2d_case(const BeamBlockCase& c) {
   std::printf("Demo D4 (not a validation): %s, %s, E_l = %g J/m, tau = %g s\n", m.name.c_str(),
               c.plane == PlaneCondition::PlaneStrain ? "plane strain" : "plane stress", c.E_l_J_m, c.pulse_s);
   std::vector<BeamRunResult> results;
-  std::vector<std::vector<double>> sweep(16), sens(6);
+  const std::vector<std::string> sweep_header{
+      "s_mm", "dT0_estimate_K", "dT_centre_K", "vm_centre_estimate_MPa", "vm_centre_MPa", "szz_centre_estimate_MPa",
+      "szz_centre_MPa", "vm_peak_MPa", "s1_peak_MPa", "s3_peak_MPa", "T_max_end_of_pulse_K", "strength_ratio",
+      "compressive_ratio", "gps_shift_percent", "energy_stored_J_m", "energy_deposited_J_m"};
+  const std::vector<std::string> sens_header{"s_mm", "nu", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "szz_centre_MPa"};
+  std::vector<std::vector<double>> sweep(sweep_header.size()), sens(sens_header.size());
   for (const double s_mm : c.beam_sizes_mm) {
     const BeamRunResult r = run_beam_size(c, s_mm);
     const BeamSnapshot& e = r.history.front();
-    const double s_m = s_mm * 1e-3;
+    const double s_m = s_mm * kMetrePerMm;
     const double dT0 = c.E_l_J_m / (2 * kPi * s_m * s_m * rho_c);
     const double vm_est = m.E_Pa * m.alpha_per_K * dT0 / (2 * (1 - m.nu));  // infinite plane strain, centre
     const double szz_est = -m.E_Pa * m.alpha_per_K * dT0 / (1 - m.nu);
@@ -282,15 +298,10 @@ std::vector<BeamRunResult> run_thermomech2d_case(const BeamBlockCase& c) {
     }
     results.push_back(r);
   }
-  write_csv(c.output_dir / "sweep.csv",
-            {"s_mm", "dT0_estimate_K", "dT_centre_K", "vm_centre_estimate_MPa", "vm_centre_MPa", "szz_centre_estimate_MPa",
-             "szz_centre_MPa", "vm_peak_MPa", "s1_peak_MPa", "s3_peak_MPa", "T_max_end_of_pulse_K", "strength_ratio",
-             "compressive_ratio", "gps_shift_percent", "energy_stored_J_m", "energy_deposited_J_m"},
-            sweep, {"demo D4 " + m.name + " (not a validation); estimates: infinite plane strain, section 11"});
+  write_csv(c.output_dir / "sweep.csv", sweep_header, sweep,
+            {"demo D4 " + m.name + " (not a validation); estimates: infinite plane strain, section 11"});
   if (!m.nu_sensitivity.empty()) {
-    write_csv(c.output_dir / "nu_sensitivity.csv",
-              {"s_mm", "nu", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "szz_centre_MPa"}, sens,
-              {"demo D4 " + m.name + ", end of pulse"});
+    write_csv(c.output_dir / "nu_sensitivity.csv", sens_header, sens, {"demo D4 " + m.name + ", end of pulse"});
   }
   return results;
 }

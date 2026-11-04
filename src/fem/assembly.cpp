@@ -13,6 +13,12 @@ std::vector<int> cell_dofs(const CellBlock& block, int cell, int n_comp) {
   return dofs;
 }
 
+Eigen::VectorXd gather(const Eigen::VectorXd& u, const std::vector<int>& dofs) {
+  Eigen::VectorXd out(static_cast<Eigen::Index>(dofs.size()));
+  for (std::size_t i = 0; i < dofs.size(); ++i) out(static_cast<Eigen::Index>(i)) = u(dofs[i]);
+  return out;
+}
+
 Eigen::SparseMatrix<double> assemble_matrix(const Mesh& mesh, const std::vector<const CellBlock*>& blocks,
                                             int n_comp, const CellMatrixKernel& kernel) {
   std::vector<Eigen::Triplet<double>> triplets;

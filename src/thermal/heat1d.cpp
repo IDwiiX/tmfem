@@ -1,5 +1,8 @@
 #include "thermal/heat1d.hpp"
 
+#include <stdexcept>
+#include <utility>
+
 namespace tmfem {
 
 namespace {
@@ -38,6 +41,7 @@ void assemble_volume(const Heat1DProblem& p, MassType mass, Eigen::SparseMatrix<
 }  // namespace
 
 ThermalOperators build_operators(const Heat1DProblem& problem, MassType mass) {
+  if (problem.k <= 0.0 || problem.rho_c <= 0.0) throw std::invalid_argument("Heat1DProblem: k and rho c must be positive");
   ThermalOperators ops;
   assemble_volume(problem, mass, ops.M, ops.A);
   const int n = problem.mesh.n_nodes();

@@ -1,11 +1,15 @@
 #include "mesh/gmsh_reader.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <fstream>
-#include <sstream>
+#include <functional>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace tmfem {
 
@@ -87,7 +91,6 @@ void read_nodes(std::istream& in, std::vector<std::size_t>& tags, std::vector<st
     std::size_t n = 0;
     in >> dim >> entity >> parametric >> n;
     if (parametric != 0) fail("parametric node coordinates are not supported");
-    const std::size_t first = tags.size();
     for (std::size_t i = 0; i < n; ++i) {
       std::size_t t = 0;
       in >> t;
@@ -98,18 +101,21 @@ void read_nodes(std::istream& in, std::vector<std::size_t>& tags, std::vector<st
       in >> p[0] >> p[1] >> p[2];
       xyz.push_back(p);
     }
-    if (tags.size() != first + n) fail("node block size mismatch");
+    if (!in) fail("truncated node block");
   }
   expect(in, "$EndNodes");
 }
 
+// Element type codes of the Gmsh file format.
+constexpr int kGmshLine2 = 1, kGmshTri3 = 2, kGmshLine3 = 8, kGmshTri6 = 9, kGmshPoint1 = 15;
+
 CellType cell_type_from_gmsh(int gmsh_type) {
   switch (gmsh_type) {
-    case 15: return CellType::Point1;
-    case 1: return CellType::Line2;
-    case 8: return CellType::Line3;
-    case 2: return CellType::Tri3;
-    case 9: return CellType::Tri6;
+    case kGmshPoint1: return CellType::Point1;
+    case kGmshLine2: return CellType::Line2;
+    case kGmshLine3: return CellType::Line3;
+    case kGmshTri3: return CellType::Tri3;
+    case kGmshTri6: return CellType::Tri6;
     default: fail("unsupported element type " + std::to_string(gmsh_type));
   }
 }
@@ -183,11 +189,12 @@ Mesh read_gmsh41(const std::filesystem::path& path) {
   EntityPhysicals physicals;
   std::vector<std::size_t> tags;
   std::vector<std::array<double, 3>> xyz;
-  bool have_nodes = false;
+  bool have_format = false, have_nodes = false;
   std::string section;
   while (in >> section) {
     if (section == "$MeshFormat") {
       read_format(in);
+      have_format = true;
     } else if (section == "$PhysicalNames") {
       read_physical_names(in, mesh);
     } else if (section == "$Entities") {
@@ -220,6 +227,7 @@ Mesh read_gmsh41(const std::filesystem::path& path) {
       fail("unexpected token '" + section + "'");
     }
   }
+  if (!have_format) fail("no $MeshFormat section in " + path.string());
   if (!have_nodes) fail("no $Nodes section in " + path.string());
   return mesh;
 }

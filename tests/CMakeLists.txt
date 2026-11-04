@@ -23,7 +23,8 @@ tmfem_add_phase_tests(phase1 SOURCES
   phase1/carburizing.cpp
   phase1/thin_film.cpp
   phase1/steel_plate.cpp
-  phase1/heat1d_convergence.cpp)
+  phase1/heat1d_convergence.cpp
+  phase1/input_checks.cpp)
 tmfem_add_phase_tests(phase2 SOURCES
   phase2/gmsh_reader.cpp
   phase2/shape_functions.cpp
@@ -33,7 +34,8 @@ tmfem_add_phase_tests(phase2 SOURCES
   phase2/patch.cpp
   phase2/bar_elastic.cpp
   phase2/kirsch.cpp
-  phase2/kirsch_convergence.cpp)
+  phase2/kirsch_convergence.cpp
+  phase2/input_checks.cpp)
 tmfem_add_phase_tests(phase3 SOURCES
   phase3/hardening_units.cpp
   phase3/return_mapping.cpp
@@ -53,4 +55,5 @@ tmfem_add_phase_tests(phase4 SOURCES
   phase4/thermal_disk.cpp
   phase4/heat2d_exactness.cpp
   phase4/heat2d_gaussian.cpp
-  phase4/beam_block_demo.cpp)
+  phase4/beam_block_demo.cpp
+  phase4/input_checks.cpp)

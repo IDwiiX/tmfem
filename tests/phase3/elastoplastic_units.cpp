@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <memory>
+#include <stdexcept>
 
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/elastoplastic2d.hpp"
@@ -79,4 +80,8 @@ TEST_CASE("Global tangent matches finite differences of the internal force", "[p
     const Eigen::VectorXd Kv = lin.K_T * dir;
     CHECK((fd - Kv).cwiseAbs().maxCoeff() <= 1e-6 * Kv.cwiseAbs().maxCoeff());
   }
+}
+
+TEST_CASE("elastic_tensor4 rejects an unphysical material", "[phase3]") {
+  CHECK_THROWS_AS(elastic_tensor4({200e9, 0.5}), std::invalid_argument);
 }

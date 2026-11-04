@@ -13,9 +13,23 @@ namespace tmfem {
 
 namespace {
 
-// A pivot below this fraction of the largest one means K_ff is singular to round-off. Well-posed
-// meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
-constexpr double kMinRelativePivot = 1e-10;
+// Two conditions on one dof count as the same value within this tolerance, scaled by 1 + |v|.
+constexpr double kDirichletMatchTolerance = 1e-14;
+
+// Needs at least one free dof: the factorisation and pivot check are not defined on an empty matrix.
+Eigen::VectorXd solve_free_dofs(const Eigen::SparseMatrix<double>& K_ff, const Eigen::VectorXd& rhs) {
+  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> ldlt(K_ff);
+  if (ldlt.info() != Eigen::Success) throw std::runtime_error("solve_elastic2d: factorisation failed");
+  const Eigen::VectorXd u_f = ldlt.solve(rhs);
+  if (ldlt.info() != Eigen::Success) throw std::runtime_error("solve_elastic2d: solve failed");
+  // LDLT of a singular matrix (a missed rigid mode) "succeeds": the zero pivot comes out as round-off,
+  // about 1e-15 of the largest and possibly positive. So compare the pivots relative to the largest.
+  const Eigen::VectorXd pivots = ldlt.vectorD();
+  if (pivots.minCoeff() < kMinRelativePivot * pivots.cwiseAbs().maxCoeff()) {
+    throw std::runtime_error("solve_elastic2d: K_ff is singular or indefinite (rigid-body mode not constrained?)");
+  }
+  return u_f;
+}
 
 }  // namespace
 
@@ -27,7 +41,7 @@ std::map<int, double> collect_dirichlet(const Mesh& mesh, const std::vector<Disp
       const double v = bc.value_m(mesh.x_m.row(node).transpose());
       const int dof = 2 * node + bc.component;
       const auto [it, inserted] = values.emplace(dof, v);
-      if (!inserted && std::abs(it->second - v) > 1e-14 * (1.0 + std::abs(v))) {
+      if (!inserted && std::abs(it->second - v) > kDirichletMatchTolerance * (1.0 + std::abs(v))) {
         throw std::invalid_argument("DisplacementBC: conflicting values at a shared node");
       }
     }
@@ -76,16 +90,7 @@ Elastic2DSolution solve_elastic2d(const Elastic2DProblem& p) {
   const Eigen::SparseMatrix<double> K_ff = part.block_ff(K);
   const Eigen::VectorXd rhs = part.restrict_free(f) - part.block_fc(K) * g;
 
-  Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> ldlt(K_ff);
-  if (ldlt.info() != Eigen::Success) throw std::runtime_error("solve_elastic2d: factorisation failed");
-  const Eigen::VectorXd u_f = ldlt.solve(rhs);
-  if (ldlt.info() != Eigen::Success) throw std::runtime_error("solve_elastic2d: solve failed");
-  // LDLT of a singular matrix (a missed rigid mode) "succeeds": the zero pivot comes out as round-off,
-  // about 1e-15 of the largest and possibly positive. So compare the pivots relative to the largest.
-  const Eigen::VectorXd pivots = ldlt.vectorD();
-  if (pivots.minCoeff() < kMinRelativePivot * pivots.cwiseAbs().maxCoeff()) {
-    throw std::runtime_error("solve_elastic2d: K_ff is singular or indefinite (rigid-body mode not constrained?)");
-  }
+  const Eigen::VectorXd u_f = K_ff.rows() > 0 ? solve_free_dofs(K_ff, rhs) : Eigen::VectorXd();
 
   Elastic2DSolution sol;
   sol.u_m = part.combine(u_f, g);

@@ -10,6 +10,9 @@ namespace tmfem {
 // shear (gamma_xy = 2 eps_xy), stresses carry the tensor component sigma_xy.
 using Voigt4 = Eigen::Vector4d;
 
+// The identity tensor m as a 4-vector.
+inline Voigt4 identity_voigt4() { return Voigt4(1.0, 1.0, 1.0, 0.0); }
+
 // History at one material point, as converged at the end of the last load step.
 struct MaterialState {
   Voigt4 eps_p = Voigt4::Zero();  // plastic strain, engineering shear

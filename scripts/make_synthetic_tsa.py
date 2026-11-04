@@ -2,8 +2,8 @@
 """Write the synthetic sol-air temperature used until the real ttab file arrives.
 
 T_sa(t) = 50 - 24 cos(2 pi t / 1 day) degC, sampled hourly from 0 to 72 h (26 to 74 degC;
-starts at 26 degC, in equilibrium with the plate and the room). Agreed at kickoff (memory Q
-"synthetic steel-plate signal"). Output: cases/steel_plate/synthetic_tsa.csv (t_s,T_sa_C).
+starts at 26 degC, in equilibrium with the plate and the room).
+Output: cases/steel_plate/synthetic_tsa.csv (t_s,T_sa_C).
 Run: python3 scripts/make_synthetic_tsa.py
 """
 import math

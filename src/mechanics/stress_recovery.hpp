@@ -31,8 +31,8 @@ struct NodalStressFields {
 };
 NodalStressFields nodal_stress_fields(const Elastic2DProblem& p, const Eigen::VectorXd& u_m);
 
-// Stress at a physical point: the cell stress (D B u_e - beta dT_h m) in the cell containing x, averaged over all containing cells
-// when x is on a shared edge or node. std::nullopt if no cell contains x.
+// Stress at a physical point: the cell stress (D B u_e - beta dT_h m) in the cell containing x, averaged over
+// all containing cells when x is on a shared edge or node. std::nullopt if no cell contains x.
 std::optional<Eigen::Vector3d> stress_at_point(const Elastic2DProblem& p, const Eigen::VectorXd& u_m,
                                                const Eigen::Vector2d& x_m);
 

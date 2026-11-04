@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -123,4 +124,10 @@ TEST_CASE("P3-a Ludwik least-squares fit with uncertainty", "[phase3][P3-a]") {
                }()},
               {"plastic points of tensile_true.csv; residual = data - LSQ fit"});
   }
+}
+
+TEST_CASE("fit_ludwik_loglog rejects columns of different lengths", "[phase3]") {
+  const std::vector<double> alpha{0.01, 0.02, 0.03};
+  const std::vector<double> sigma_Pa{400e6, 410e6};
+  CHECK_THROWS_AS(fit_ludwik_loglog(alpha, sigma_Pa, 300e6), std::invalid_argument);
 }

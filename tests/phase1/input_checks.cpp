@@ -69,3 +69,12 @@ TEST_CASE("run_heat1d_case rejects a non-positive time grid", "[phase1][io]") {
   c.t_end_s = 0.0;  // otherwise t_end / dt = NaN goes into lround
   CHECK_THROWS_AS(run_heat1d_case(c), std::invalid_argument);
 }
+
+TEST_CASE("1D build_operators rejects non-positive k and rho_c", "[phase1][thermal]") {
+  Heat1DProblem p = slab();
+  p.k = 0.0;
+  CHECK_THROWS_AS(build_operators(p, MassType::Consistent), std::invalid_argument);
+  p = slab();
+  p.rho_c = -1.0;
+  CHECK_THROWS_AS(build_operators(p, MassType::Consistent), std::invalid_argument);
+}

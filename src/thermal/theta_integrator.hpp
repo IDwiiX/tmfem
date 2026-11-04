@@ -6,7 +6,7 @@
 #include <Eigen/SparseCholesky>
 
 #include "fem/dirichlet.hpp"
-#include "thermal/heat1d.hpp"
+#include "thermal/thermal_operators.hpp"
 
 namespace tmfem {
 

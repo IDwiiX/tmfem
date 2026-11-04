@@ -8,6 +8,13 @@
 
 namespace tmfem {
 
+namespace {
+
+// Round-off allowed outside the data range, relative to its length (accumulated time stepping).
+constexpr double kRangeSlack = 1e-9;
+
+}  // namespace
+
 TimeSeries::TimeSeries(std::vector<double> t_s, std::vector<double> values)
     : t_(std::move(t_s)), v_(std::move(values)) {
   if (t_.size() < 2 || t_.size() != v_.size()) {
@@ -24,7 +31,7 @@ TimeSeries TimeSeries::read_csv(const std::filesystem::path& path) {
 }
 
 double TimeSeries::operator()(double t_s) const {
-  const double slack = 1e-9 * (t_.back() - t_.front());
+  const double slack = kRangeSlack * (t_.back() - t_.front());
   if (t_s < t_.front() - slack || t_s > t_.back() + slack) {
     throw std::out_of_range("TimeSeries: t = " + std::to_string(t_s) + " s outside the data range");
   }

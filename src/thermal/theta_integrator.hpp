@@ -23,7 +23,6 @@ class ThetaIntegrator {
   // Changes the step size and refactorises.
   void set_dt(double dt_s);
   double dt() const { return dt_; }
-  double theta() const { return theta_; }
   const ThermalOperators& operators() const { return ops_; }
 
   // One step from (t_n, T_n) to t_n + dt.

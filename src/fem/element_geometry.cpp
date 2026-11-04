@@ -8,6 +8,10 @@ namespace {
 
 constexpr double kInsideSlack = 1e-10;
 constexpr int kMaxNewton = 25;
+constexpr double kBoundingBoxPadding = 0.1;   // curved T6 edges can bulge past the box of the nodes
+constexpr double kNewtonStepTolerance = 1e-14;
+constexpr double kNewtonResidualTolerance = 1e-13;  // relative to the cell size, like the next one
+constexpr double kMapTolerance = 1e-10;
 
 }  // namespace
 
@@ -28,10 +32,10 @@ Eigen::Vector2d map_to_physical(CellType type, const Eigen::MatrixXd& x_e, const
 }
 
 std::optional<Eigen::Vector2d> inverse_map(CellType type, const Eigen::MatrixXd& x_e, const Eigen::Vector2d& x) {
-  // Cheap rejection: outside the node bounding box enlarged by 10% (curved T6 edges can bulge past it).
+  // Cheap rejection: outside the enlarged node bounding box.
   const Eigen::Vector2d lo = x_e.colwise().minCoeff();
   const Eigen::Vector2d hi = x_e.colwise().maxCoeff();
-  const Eigen::Vector2d pad = 0.1 * (hi - lo);
+  const Eigen::Vector2d pad = kBoundingBoxPadding * (hi - lo);
   if ((x.array() < (lo - pad).array()).any() || (x.array() > (hi + pad).array()).any()) return std::nullopt;
 
   Eigen::Vector2d xi(1.0 / 3.0, 1.0 / 3.0);
@@ -42,9 +46,9 @@ std::optional<Eigen::Vector2d> inverse_map(CellType type, const Eigen::MatrixXd&
     const Eigen::Matrix2d J = x_e.transpose() * s.dN_dxi;
     const Eigen::Vector2d dxi = J.lu().solve(r);
     xi += dxi;
-    if (dxi.norm() < 1e-14 && r.norm() < 1e-13 * scale) break;
+    if (dxi.norm() < kNewtonStepTolerance && r.norm() < kNewtonResidualTolerance * scale) break;
   }
-  if ((map_to_physical(type, x_e, xi) - x).norm() > 1e-10 * scale) {
+  if ((map_to_physical(type, x_e, xi) - x).norm() > kMapTolerance * scale) {
     return std::nullopt;  // Newton did not converge (point far outside a curved cell)
   }
   const double L1 = 1.0 - xi(0) - xi(1);

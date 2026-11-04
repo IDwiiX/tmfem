@@ -9,6 +9,7 @@
 #include "io/csv_reader.hpp"
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
+#include "io/units.hpp"
 #include "io/vtu_writer.hpp"
 #include "mechanics/hardening.hpp"
 #include "mechanics/j2_plasticity.hpp"
@@ -17,9 +18,6 @@
 namespace tmfem {
 
 namespace {
-
-constexpr double kPaPerMPa = 1e6;
-constexpr double kPaPerGPa = 1e9;
 
 std::shared_ptr<const HardeningLaw> hardening_law(const nlohmann::json& j, double E_Pa,
                                                   const std::filesystem::path& base_dir) {

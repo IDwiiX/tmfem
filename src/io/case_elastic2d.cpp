@@ -6,6 +6,7 @@
 
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
+#include "io/units.hpp"
 #include "io/vtu_writer.hpp"
 #include "mechanics/kirsch_analytic.hpp"
 #include "mechanics/stress_recovery.hpp"
@@ -14,9 +15,6 @@
 namespace tmfem {
 
 namespace {
-
-constexpr double kPaPerMPa = 1e6;
-constexpr double kPaPerGPa = 1e9;
 
 Eigen::Vector2d vector2(const nlohmann::json& j) { return {j.at(0).get<double>(), j.at(1).get<double>()}; }
 

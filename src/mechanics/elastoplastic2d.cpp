@@ -23,12 +23,6 @@ std::vector<int> constrained_list(const std::map<int, double>& bc, Eigen::Vector
   return dofs;
 }
 
-Eigen::VectorXd gather(const Eigen::VectorXd& u, const std::vector<int>& dofs) {
-  Eigen::VectorXd out(static_cast<Eigen::Index>(dofs.size()));
-  for (std::size_t i = 0; i < dofs.size(); ++i) out(static_cast<Eigen::Index>(i)) = u(dofs[i]);
-  return out;
-}
-
 }  // namespace
 
 QuadRuleTri plastic_rule(CellType type) {

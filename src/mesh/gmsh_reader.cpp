@@ -1,5 +1,6 @@
 #include "mesh/gmsh_reader.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <fstream>

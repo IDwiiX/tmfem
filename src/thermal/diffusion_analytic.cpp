@@ -3,17 +3,19 @@
 #include <cmath>
 #include <stdexcept>
 
+#include "core/constants.hpp"
+
 namespace tmfem {
 
 namespace {
-const double kPi = std::acos(-1.0);
 
 // erfinv: bisection on [0, kErfUpperBracket] (erf(6) is 1 to machine precision), then Newton.
 constexpr double kErfUpperBracket = 6.0;
 constexpr int kErfBisections = 30;
 constexpr int kErfNewtonSteps = 10;
 constexpr double kErfRelativeStep = 1e-16;
-}
+
+}  // namespace
 
 double erfinv(double y) {
   if (!(std::abs(y) < 1.0)) throw std::domain_error("erfinv: need |y| < 1");

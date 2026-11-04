@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "core/constants.hpp"
 #include "io/case_elastic2d.hpp"
 #include "io/csv_writer.hpp"
 #include "io/json_file.hpp"
@@ -20,7 +21,6 @@ namespace tmfem {
 
 namespace {
 
-constexpr double kPi = 3.14159265358979323846;
 constexpr double kMetrePerMm = 1e-3;
 constexpr const char* kRegion = "domain";  // physical group of the block cross-section
 

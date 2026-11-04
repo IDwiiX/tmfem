@@ -9,7 +9,6 @@ namespace tmfem {
 namespace {
 
 const double kSqrt32 = std::sqrt(1.5);
-const Voigt4 kM(1.0, 1.0, 1.0, 0.0);
 
 // A trial state counts as plastic only if f_trial exceeds this fraction of sigma_y: a converged point
 // lying exactly on the yield surface must stay elastic when re-evaluated (section 5, step 2).
@@ -81,7 +80,8 @@ MaterialUpdate J2Plasticity::update(const Voigt4& eps, const MaterialState& conv
   const double ratio = 3.0 * G_ * dg / q_trial;
   const double theta = 1.0 - ratio;
   const double theta_bar = 3.0 * G_ / (3.0 * G_ + H) - ratio;
-  out.tangent_Pa = K_b_ * kM * kM.transpose() + 2.0 * G_ * theta * I_dev_ - 2.0 * G_ * theta_bar * n * n.transpose();
+  const Voigt4 m = identity_voigt4();
+  out.tangent_Pa = K_b_ * m * m.transpose() + 2.0 * G_ * theta * I_dev_ - 2.0 * G_ * theta_bar * n * n.transpose();
   return out;
 }
 

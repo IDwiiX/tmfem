@@ -51,7 +51,7 @@ struct Heat2DProblem {
 // Element kernels (section 3). Sizes n x n or n, n = nodes per cell (or per edge).
 Eigen::MatrixXd element_conductivity(CellType type, const Eigen::MatrixXd& x_e, double k);  // int k gradN.gradN
 Eigen::MatrixXd element_capacity(CellType type, const Eigen::MatrixXd& x_e, double c);      // int c N N^T, exact on straight cells
-Eigen::VectorXd element_source(CellType type, const Eigen::MatrixXd& x_e, const ScalarField& q);  // 6-point
+Eigen::VectorXd element_source(CellType type, const Eigen::MatrixXd& x_e, const ScalarField& q_W_m3);  // 6-point
 Eigen::MatrixXd edge_robin_matrix(CellType type, const Eigen::MatrixXd& x_e, double h);     // int_edge h N N^T
 Eigen::VectorXd edge_load(CellType type, const Eigen::MatrixXd& x_e, double value);         // int_edge value N
 

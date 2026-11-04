@@ -7,6 +7,7 @@
 #include <string>
 
 #include "mechanics/elastic2d.hpp"
+#include "mechanics/elastoplastic2d.hpp"
 #include "mesh/gmsh_reader.hpp"
 #include "support/paths.hpp"
 
@@ -49,4 +50,17 @@ TEST_CASE("solve_elastic2d handles a fully constrained mesh", "[phase2][mechanic
     CHECK(sol.u_m(2 * i) == 1e-3 * p.mesh.x_m(i, 0));
     CHECK(sol.u_m(2 * i + 1) == 0.0);
   }
+}
+
+TEST_CASE("ElastoplasticSolver handles a fully constrained mesh", "[phase2][mechanics]") {
+  Elastoplastic2DProblem p;
+  p.mesh = read_gmsh41(test::source_dir() / "cases/bar/bar_t3.msh");
+  p.model = std::make_shared<LinearElasticModel>(ElasticMaterial{200e9, 0.3});
+  p.plane = PlaneCondition::PlaneStrain;
+  p.displacements.push_back({"domain", 0, [](const Eigen::Vector2d& x) { return 1e-3 * x(0); }});
+  p.displacements.push_back({"domain", 1, [](const Eigen::Vector2d&) { return 0.0; }});
+  ElastoplasticSolver solver(std::move(p));
+  CHECK(solver.step_to(1.0).converged);
+  const auto& mesh = solver.problem().mesh;
+  for (int i = 0; i < mesh.n_nodes(); ++i) CHECK(solver.displacement_m()(2 * i) == 1e-3 * mesh.x_m(i, 0));
 }

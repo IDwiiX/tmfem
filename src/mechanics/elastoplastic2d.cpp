@@ -110,6 +110,7 @@ NewtonIterate ElastoplasticSolver::measure(const Linearization& lin, const Eigen
 }
 
 Eigen::VectorXd ElastoplasticSolver::solve_correction(const Linearization& lin, const Eigen::VectorXd& rhs_f) {
+  if (rhs_f.size() == 0) return Eigen::VectorXd();  // every dof prescribed; LDLT is not defined on an empty matrix
   const Eigen::SparseMatrix<double> K_ff = part_.block_ff(lin.K_T);
   if (!pattern_analysed_) {
     ldlt_.analyzePattern(K_ff);

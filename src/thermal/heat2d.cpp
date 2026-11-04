@@ -123,6 +123,7 @@ ThermalOperators build_operators(const Heat2DProblem& p) {
   }
   for (const FluxBC2D& f : p.fluxes) loads.emplace_back(unit_edge_vector(mesh, f.physical, 1.0), f.q_in_W_m2);
   if (p.face_cooling) {
+    if (p.face_cooling->thickness_m <= 0.0) throw std::invalid_argument("FaceCooling: thickness must be positive");
     const double c = 2.0 * p.face_cooling->h_W_m2K / p.face_cooling->thickness_m;
     ops.A += assemble_matrix(mesh, cells, 1,
                              [c](CellType t, const Eigen::MatrixXd& x) { return element_capacity(t, x, c); });

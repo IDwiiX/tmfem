@@ -55,4 +55,5 @@ tmfem_add_phase_tests(phase4 SOURCES
   phase4/thermal_disk.cpp
   phase4/heat2d_exactness.cpp
   phase4/heat2d_gaussian.cpp
-  phase4/beam_block_demo.cpp)
+  phase4/beam_block_demo.cpp
+  phase4/input_checks.cpp)

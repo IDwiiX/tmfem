@@ -17,6 +17,9 @@ namespace {
 // meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
 constexpr double kMinRelativePivot = 1e-10;
 
+// Two conditions on one dof count as the same value within this relative difference.
+constexpr double kDirichletMatchTolerance = 1e-14;
+
 // Needs at least one free dof: the factorisation and pivot check are not defined on an empty matrix.
 Eigen::VectorXd solve_free_dofs(const Eigen::SparseMatrix<double>& K_ff, const Eigen::VectorXd& rhs) {
   Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> ldlt(K_ff);
@@ -42,7 +45,7 @@ std::map<int, double> collect_dirichlet(const Mesh& mesh, const std::vector<Disp
       const double v = bc.value_m(mesh.x_m.row(node).transpose());
       const int dof = 2 * node + bc.component;
       const auto [it, inserted] = values.emplace(dof, v);
-      if (!inserted && std::abs(it->second - v) > 1e-14 * (1.0 + std::abs(v))) {
+      if (!inserted && std::abs(it->second - v) > kDirichletMatchTolerance * (1.0 + std::abs(v))) {
         throw std::invalid_argument("DisplacementBC: conflicting values at a shared node");
       }
     }

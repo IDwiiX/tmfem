@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "io/case_heat1d.hpp"
 #include "io/csv_reader.hpp"
 #include "mesh/interval_mesh.hpp"
 #include "support/paths.hpp"
@@ -22,6 +23,17 @@ std::filesystem::path write_file(const std::string& name, const std::string& tex
   const auto path = dir / name;
   std::ofstream(path) << text;
   return path;
+}
+
+// Well-posed slab: insulated left, fixed right.
+Heat1DProblem slab() {
+  Heat1DProblem p;
+  p.mesh = uniform_interval(1.0, 4);
+  p.k = 1.0;
+  p.rho_c = 1.0;
+  p.left = FluxBC{[](double) { return 0.0; }};
+  p.right = DirichletBC{[](double) { return 300.0; }};
+  return p;
 }
 
 }  // namespace
@@ -42,4 +54,18 @@ TEST_CASE("interpolate rejects a nodal vector of the wrong size", "[phase1][mesh
   const IntervalMesh mesh = uniform_interval(1.0, 4);
   const std::vector<double> too_short{0.0, 1.0};
   CHECK_THROWS_AS(interpolate(mesh, too_short, 0.9), std::invalid_argument);
+}
+
+TEST_CASE("run_heat1d_case rejects a non-positive time grid", "[phase1][io]") {
+  Heat1DCase c;
+  c.problem = slab();
+  c.T0_K = 300.0;
+  c.theta = 1.0;
+  c.mass = MassType::Consistent;
+  c.dt_s = 1.0;
+  c.t_end_s = -10.0;  // otherwise a "multiple of dt" that runs zero steps and reports success
+  CHECK_THROWS_AS(run_heat1d_case(c), std::invalid_argument);
+  c.dt_s = 0.0;
+  c.t_end_s = 0.0;  // otherwise t_end / dt = NaN goes into lround
+  CHECK_THROWS_AS(run_heat1d_case(c), std::invalid_argument);
 }

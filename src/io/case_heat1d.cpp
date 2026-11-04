@@ -71,6 +71,7 @@ Heat1DCase load_heat1d_case(const std::filesystem::path& json_path, const std::f
 }
 
 ProbeHistory run_heat1d_case(const Heat1DCase& c) {
+  if (!(c.dt_s > 0.0) || !(c.t_end_s > 0.0)) throw std::invalid_argument("run_heat1d_case: need dt > 0 and t_end > 0");
   const int n_steps = static_cast<int>(std::lround(c.t_end_s / c.dt_s));
   if (std::abs(n_steps * c.dt_s - c.t_end_s) > 1e-9 * c.t_end_s) {
     throw std::runtime_error("run_heat1d_case: t_end must be a multiple of dt");

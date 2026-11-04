@@ -20,7 +20,7 @@ class ThetaIntegrator {
   ThetaIntegrator(const ThetaIntegrator&) = delete;
   ThetaIntegrator& operator=(const ThetaIntegrator&) = delete;
 
-  // Changes the step size and refactorises.
+  // Changes the step size and refactorises (nothing to do if it is unchanged).
   void set_dt(double dt_s);
   double dt() const { return dt_; }
   const ThermalOperators& operators() const { return ops_; }

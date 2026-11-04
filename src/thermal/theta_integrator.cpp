@@ -18,6 +18,7 @@ ThetaIntegrator::ThetaIntegrator(ThermalOperators ops, double theta, double dt_s
 }
 
 void ThetaIntegrator::set_dt(double dt_s) {
+  if (dt_s == dt_) return;  // already factorised for this step
   dt_ = dt_s;
   factorize();
 }

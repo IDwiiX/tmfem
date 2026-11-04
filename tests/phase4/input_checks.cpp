@@ -64,3 +64,10 @@ TEST_CASE("thermomech2d loader accepts the valid base case", "[phase4][io]") { C
 TEST_CASE("thermomech2d loader rejects an unknown strength type", "[phase4][io]") {
   CHECK_THROWS_WITH(load(beam_case("\"brittle\"", "\"britle\"")), ContainsSubstring("strength type"));
 }
+
+TEST_CASE("thermomech2d loader rejects bad cooling stage ends", "[phase4][io]") {
+  const std::string stages = "[1e-4, 1e-3]";
+  CHECK_THROWS_WITH(load(beam_case(stages, "[]")), ContainsSubstring("stage_ends_s"));  // run_beam_size calls front()
+  CHECK_THROWS_WITH(load(beam_case(stages, "[1e-3, 1e-3]")), ContainsSubstring("stage_ends_s"));
+  CHECK_THROWS_WITH(load(beam_case(stages, "[1e-6, 1e-3]")), ContainsSubstring("stage_ends_s"));  // before the pulse ends
+}

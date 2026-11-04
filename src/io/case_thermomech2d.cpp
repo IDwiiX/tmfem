@@ -127,6 +127,16 @@ std::vector<double> col(const Eigen::MatrixXd& m, Eigen::Index j, double scale =
   return v;
 }
 
+// Cooling stages: at least one, ending after the pulse and each after the one before.
+void require_valid_time_grid(const BeamBlockCase& c) {
+  double t = c.pulse_s;
+  for (const double t_end : c.cooling_stage_ends_s) {
+    if (!(t_end > t)) throw std::runtime_error("thermomech2d: stage_ends_s must increase and follow the pulse");
+    t = t_end;
+  }
+  if (c.cooling_stage_ends_s.empty()) throw std::runtime_error("thermomech2d: stage_ends_s must not be empty");
+}
+
 void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, const Eigen::VectorXd& T, const Fields& f) {
   const int n = mesh.n_nodes();
   Eigen::MatrixXd u(n, 3);
@@ -188,6 +198,7 @@ BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, con
     if (comp != "x" && comp != "y") throw std::runtime_error("thermomech2d: support component must be x or y");
     c.supports.push_back({s.at("physical").get<std::string>(), comp == "x" ? 0 : 1, [](const Eigen::Vector2d&) { return 0.0; }});
   }
+  require_valid_time_grid(c);
   return c;
 }
 

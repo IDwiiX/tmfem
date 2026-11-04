@@ -1,6 +1,7 @@
 #include "thermal/heat1d.hpp"
 
 #include <stdexcept>
+#include <utility>
 
 namespace tmfem {
 

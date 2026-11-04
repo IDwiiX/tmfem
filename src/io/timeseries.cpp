@@ -10,7 +10,7 @@ namespace tmfem {
 
 namespace {
 
-// Round-off allowed outside the data range, relative to its length (accumulated time stepping).
+// How far outside the data range a time may lie (round-off in t), relative to the length of the range.
 constexpr double kRangeSlack = 1e-9;
 
 }  // namespace

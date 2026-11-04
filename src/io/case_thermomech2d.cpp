@@ -30,10 +30,11 @@ std::string format_mm(double s_mm) {
 }
 
 std::filesystem::path mesh_path(const BeamBlockCase& c, double s_mm) {
+  const std::string placeholder = "{s_mm}";
   std::string p = c.mesh_pattern;
-  const auto at = p.find("{s_mm}");
-  if (at == std::string::npos) throw std::runtime_error("thermomech2d: mesh_pattern must contain {s_mm}");
-  return p.replace(at, 6, format_mm(s_mm));
+  const auto at = p.find(placeholder);
+  if (at == std::string::npos) throw std::runtime_error("thermomech2d: mesh_pattern must contain " + placeholder);
+  return p.replace(at, placeholder.size(), format_mm(s_mm));
 }
 
 BeamMaterial load_material(const nlohmann::json& j) {

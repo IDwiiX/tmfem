@@ -23,7 +23,8 @@ tmfem_add_phase_tests(phase1 SOURCES
   phase1/carburizing.cpp
   phase1/thin_film.cpp
   phase1/steel_plate.cpp
-  phase1/heat1d_convergence.cpp)
+  phase1/heat1d_convergence.cpp
+  phase1/input_checks.cpp)
 tmfem_add_phase_tests(phase2 SOURCES
   phase2/gmsh_reader.cpp
   phase2/shape_functions.cpp

@@ -27,6 +27,8 @@ std::vector<std::vector<double>> read_numeric_csv(const std::filesystem::path& p
       if (!(row >> v)) throw std::runtime_error("read_numeric_csv: bad row '" + line + "' in " + path.string());
       c.push_back(v);
     }
+    std::string extra;
+    if (row >> extra) throw std::runtime_error("read_numeric_csv: extra column in '" + line + "' in " + path.string());
   }
   return cols;
 }

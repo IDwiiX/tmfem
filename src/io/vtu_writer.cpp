@@ -8,10 +8,13 @@ namespace tmfem {
 
 namespace {
 
+// Cell type codes of the VTK file format.
+constexpr int kVtkTriangle = 5, kVtkQuadraticTriangle = 22;
+
 int vtk_cell_type(CellType type) {
   switch (type) {
-    case CellType::Tri3: return 5;
-    case CellType::Tri6: return 22;
+    case CellType::Tri3: return kVtkTriangle;
+    case CellType::Tri6: return kVtkQuadraticTriangle;
     default: throw std::invalid_argument("write_vtu: only Tri3 and Tri6 cells are written");
   }
 }

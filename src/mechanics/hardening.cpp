@@ -7,6 +7,19 @@
 
 namespace tmfem {
 
+namespace {
+
+// Largest negative alpha that from_true_curve clips to 0 at the first plastic point: data round-off only.
+constexpr double kMaxClippedAlpha = 1e-5;
+
+// plastic_strain_at_stress: bracket grown by doubling from the start value, then bisection.
+constexpr double kBracketStartAlpha = 1e-3;
+constexpr double kBracketLimitAlpha = 1e3;
+constexpr int kMaxBisections = 200;
+constexpr double kBisectionTolerance = 1e-16;
+
+}  // namespace
+
 LinearHardening::LinearHardening(double sigma_y0_Pa, double H_Pa) : sigma_y0_Pa_(sigma_y0_Pa), H_Pa_(H_Pa) {
   if (sigma_y0_Pa <= 0.0 || H_Pa < 0.0) throw std::invalid_argument("LinearHardening: need sigma_y0 > 0, H >= 0");
 }
@@ -54,7 +67,7 @@ TabulatedHardening TabulatedHardening::from_true_curve(const std::vector<double>
     const double a = eps_true[i] - sigma_true_Pa[i] / E_Pa;
     // First plastic point: clipped to alpha = 0. Only data round-off may be clipped (-3.2e-6 for tensile_true.csv);
     // anything more negative means a wrong E or sigma_start, so it is an error, not something to hide.
-    if (alpha.empty() && a < -1e-5) {
+    if (alpha.empty() && a < -kMaxClippedAlpha) {
       throw std::invalid_argument("TabulatedHardening::from_true_curve: alpha < -1e-5 at the first plastic point "
                                   "(wrong E or sigma_start?)");
     }
@@ -82,13 +95,13 @@ double TabulatedHardening::slope_Pa(double alpha) const {
 
 double plastic_strain_at_stress(const HardeningLaw& h, double sigma_Pa) {
   if (sigma_Pa <= h.yield_stress_Pa(0.0)) return 0.0;
-  double lo = 0.0, hi = 1e-3;
+  double lo = 0.0, hi = kBracketStartAlpha;
   while (h.yield_stress_Pa(hi) < sigma_Pa) {
     lo = hi;
     hi *= 2.0;
-    if (hi > 1e3) throw std::runtime_error("plastic_strain_at_stress: stress not reached by the hardening law");
+    if (hi > kBracketLimitAlpha) throw std::runtime_error("plastic_strain_at_stress: stress not reached by the hardening law");
   }
-  for (int it = 0; it < 200 && hi - lo > 1e-16 * hi; ++it) {
+  for (int it = 0; it < kMaxBisections && hi - lo > kBisectionTolerance * hi; ++it) {
     const double mid = 0.5 * (lo + hi);
     (h.yield_stress_Pa(mid) < sigma_Pa ? lo : hi) = mid;
   }

@@ -102,13 +102,16 @@ void read_nodes(std::istream& in, std::vector<std::size_t>& tags, std::vector<st
   expect(in, "$EndNodes");
 }
 
+// Element type codes of the Gmsh file format.
+constexpr int kGmshLine2 = 1, kGmshTri3 = 2, kGmshLine3 = 8, kGmshTri6 = 9, kGmshPoint1 = 15;
+
 CellType cell_type_from_gmsh(int gmsh_type) {
   switch (gmsh_type) {
-    case 15: return CellType::Point1;
-    case 1: return CellType::Line2;
-    case 8: return CellType::Line3;
-    case 2: return CellType::Tri3;
-    case 9: return CellType::Tri6;
+    case kGmshPoint1: return CellType::Point1;
+    case kGmshLine2: return CellType::Line2;
+    case kGmshLine3: return CellType::Line3;
+    case kGmshTri3: return CellType::Tri3;
+    case kGmshTri6: return CellType::Tri6;
     default: fail("unsupported element type " + std::to_string(gmsh_type));
   }
 }

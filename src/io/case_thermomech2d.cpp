@@ -23,6 +23,7 @@ constexpr double kPaPerMPa = 1e6;
 constexpr double kPaPerGPa = 1e9;
 constexpr double kPi = 3.14159265358979323846;
 constexpr double kMetrePerMm = 1e-3;
+constexpr const char* kRegion = "domain";  // physical group of the block cross-section
 
 std::string format_mm(double s_mm) {
   char buf[32];
@@ -81,7 +82,7 @@ Heat2DProblem thermal_problem(const BeamBlockCase& c, const Mesh& mesh) {
 }
 
 Elastic2DProblem mechanical_problem(const BeamBlockCase& c, const Mesh& mesh, const Eigen::VectorXd& T, double nu) {
-  return {mesh, {c.material.E_Pa, nu}, c.plane, "domain", c.supports, {},
+  return {mesh, {c.material.E_Pa, nu}, c.plane, kRegion, c.supports, {},
           ThermalStrain{c.material.alpha_per_K, c.T_ref_K, T}};
 }
 
@@ -148,7 +149,7 @@ void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, cons
   for (int i = 0; i < n; ++i) u.row(i) << f.u_m(2 * i), f.u_m(2 * i + 1), 0.0;
   const Eigen::MatrixXd s_MPa = f.stress.sigma_Pa / kPaPerMPa, s13_MPa = f.s1s3 / kPaPerMPa;
   const Eigen::MatrixXd szz_MPa = f.stress.sigma_zz_Pa / kPaPerMPa, vm_MPa = f.stress.von_mises_Pa / kPaPerMPa;
-  write_vtu(dir / "end_of_pulse.vtu", mesh, mesh.blocks_of("domain"),
+  write_vtu(dir / "end_of_pulse.vtu", mesh, mesh.blocks_of(kRegion),
             {{"temperature_K", T}, {"displacement_m", u}, {"stress_xx_yy_xy_MPa", s_MPa}, {"stress_zz_MPa", szz_MPa},
              {"von_mises_MPa", vm_MPa}, {"principal_max_min_MPa", s13_MPa}});
   write_csv(dir / "end_of_pulse_nodal.csv",

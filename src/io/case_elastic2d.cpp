@@ -18,12 +18,6 @@ namespace {
 
 Eigen::Vector2d vector2(const nlohmann::json& j) { return {j.at(0).get<double>(), j.at(1).get<double>()}; }
 
-std::vector<double> column(const Eigen::MatrixXd& m, Eigen::Index c, double scale = 1.0) {
-  std::vector<double> v(static_cast<std::size_t>(m.rows()));
-  for (Eigen::Index i = 0; i < m.rows(); ++i) v[static_cast<std::size_t>(i)] = m(i, c) * scale;
-  return v;
-}
-
 }  // namespace
 
 PlaneCondition plane_condition(const std::string& s) {
@@ -86,8 +80,9 @@ void run_elastic2d_case(const Elastic2DCase& c) {
             {{"displacement_m", u}, {"stress_xx_yy_xy_MPa", s_MPa}, {"stress_zz_MPa", szz_MPa}, {"von_mises_MPa", vm_MPa}});
   write_csv(c.output_nodal_csv,
             {"x_m", "y_m", "ux_m", "uy_m", "sxx_MPa", "syy_MPa", "sxy_MPa", "szz_MPa", "von_mises_MPa"},
-            {column(p.mesh.x_m, 0), column(p.mesh.x_m, 1), column(u, 0), column(u, 1), column(s_MPa, 0),
-             column(s_MPa, 1), column(s_MPa, 2), column(szz_MPa, 0), column(vm_MPa, 0)},
+            {matrix_column(p.mesh.x_m, 0), matrix_column(p.mesh.x_m, 1), matrix_column(u, 0), matrix_column(u, 1),
+             matrix_column(s_MPa, 0), matrix_column(s_MPa, 1), matrix_column(s_MPa, 2), matrix_column(szz_MPa, 0),
+             matrix_column(vm_MPa, 0)},
             {"nodal-averaged stresses (plots only); unit thickness"});
 }
 

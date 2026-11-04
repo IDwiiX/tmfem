@@ -123,12 +123,6 @@ Fields solve_snapshot(const BeamBlockCase& c, const Mesh& mesh, const Eigen::Vec
   return f;
 }
 
-std::vector<double> col(const Eigen::MatrixXd& m, Eigen::Index j, double scale = 1.0) {
-  std::vector<double> v(static_cast<std::size_t>(m.rows()));
-  for (Eigen::Index i = 0; i < m.rows(); ++i) v[static_cast<std::size_t>(i)] = m(i, j) * scale;
-  return v;
-}
-
 // At least one step per stage. Cooling stages: at least one, ending after the pulse and each after the one before.
 void require_valid_time_grid(const BeamBlockCase& c) {
   if (c.pulse_steps < 1 || c.cooling_steps < 1) {
@@ -153,8 +147,9 @@ void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, cons
              {"von_mises_MPa", vm_MPa}, {"principal_max_min_MPa", s13_MPa}});
   write_csv(dir / "end_of_pulse_nodal.csv",
             {"x_m", "y_m", "T_K", "sxx_MPa", "syy_MPa", "sxy_MPa", "szz_MPa", "von_mises_MPa", "s1_MPa", "s3_MPa"},
-            {col(mesh.x_m, 0), col(mesh.x_m, 1), col(T, 0), col(s_MPa, 0), col(s_MPa, 1), col(s_MPa, 2), col(szz_MPa, 0),
-             col(vm_MPa, 0), col(s13_MPa, 0), col(s13_MPa, 1)},
+            {matrix_column(mesh.x_m, 0), matrix_column(mesh.x_m, 1), matrix_column(T, 0), matrix_column(s_MPa, 0),
+             matrix_column(s_MPa, 1), matrix_column(s_MPa, 2), matrix_column(szz_MPa, 0), matrix_column(vm_MPa, 0),
+             matrix_column(s13_MPa, 0), matrix_column(s13_MPa, 1)},
             {"demo D4 end of pulse, quarter model, nodal-averaged stresses"});
 }
 

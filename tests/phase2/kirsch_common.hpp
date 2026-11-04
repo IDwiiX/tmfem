@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "core/constants.hpp"
 #include "io/json_file.hpp"
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/kirsch_analytic.hpp"
@@ -20,7 +21,6 @@
 
 namespace tmfem::test {
 
-constexpr double kPi = 3.14159265358979323846;
 constexpr double kPaPerMPa = 1e6;
 constexpr double kKirschS_Pa = 140e6;  // REFERENCE_VALUES.md P2-c..e: S = 140 MPa
 constexpr double kKirschA_m = 0.010;   // hole radius in cases/kirsch/kirsch.geo

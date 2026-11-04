@@ -19,6 +19,7 @@ Eigen::Matrix4d deviator_projector() {
 }
 
 Eigen::Matrix4d elastic_tensor4(const ElasticMaterial& m) {
+  require_valid(m);
   return bulk_modulus(m) * kM * kM.transpose() + 2.0 * shear_modulus(m) * deviator_projector();
 }
 

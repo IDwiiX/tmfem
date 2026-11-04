@@ -18,7 +18,7 @@ constexpr double kDampingFactor = 3.0;
 constexpr double kMinDamping = 1e-15;
 constexpr double kMaxDamping = 1e20;
 constexpr double kRelativeStepTolerance = 1e-14;
-// The log-log fit skips points this close to alpha = 0, where ln(alpha) is dominated by data round-off.
+// The log-log fit uses only points above this alpha; it keeps out alpha = 0, where ln(alpha) is undefined.
 constexpr double kMinFitAlpha = 1e-6;
 
 using Vec3 = Eigen::Vector3d;

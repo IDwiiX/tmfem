@@ -86,14 +86,14 @@ def error_text(row):
 
 def reference_ids():
     """Row IDs of the phase tables in docs/REFERENCE_VALUES.md (stretch goals excluded)."""
-    with open(REFERENCE_VALUES) as f:
+    with open(REFERENCE_VALUES, encoding="utf-8") as f:
         return sorted(set(re.findall(r"^\| (P\d-[a-z]) \|", f.read(), re.M)))
 
 
 def load_rows():
     rows = []
     for path in glob.glob(os.path.join(VALIDATION, "*.csv")):
-        with open(path, newline="") as f:
+        with open(path, newline="", encoding="utf-8") as f:
             rows.extend(csv.DictReader(f))
     return rows
 
@@ -115,13 +115,13 @@ def main():
         lines.append(f"| {r['id']} | {BENCHMARK.get(r['id'], '')} | {r['quantity']} | {fmt(r['reference'])} | "
                      f"{fmt(r['tmfem'])} | {error_text(r)} | {r['tolerance']} | `{r['test']}` |")
     table = "\n".join(lines)
-    with open(README) as f:
+    with open(README, encoding="utf-8") as f:
         text = f.read()
     if BEGIN not in text or END not in text:
         raise SystemExit(f"README.md lacks the {BEGIN} / {END} markers")
     head, rest = text.split(BEGIN, 1)
     _, tail = rest.split(END, 1)
-    with open(README, "w") as f:
+    with open(README, "w", encoding="utf-8") as f:
         f.write(f"{head}{BEGIN}\n{table}\n{END}{tail}")
     print(f"wrote {len(rows)} rows to {README}")
 

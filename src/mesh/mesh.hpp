@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <map>
 #include <string>
 #include <vector>
@@ -14,6 +15,9 @@ enum class CellType { Point1, Line2, Line3, Tri3, Tri6 };
 
 int nodes_per_cell(CellType type);
 int cell_dim(CellType type);
+
+// Value at a physical point.
+using ScalarField = std::function<double(const Eigen::Vector2d& x_m)>;
 
 using NodeMatrix = Eigen::Matrix<double, Eigen::Dynamic, 2, Eigen::RowMajor>;
 using ConnMatrix = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;

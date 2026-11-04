@@ -14,7 +14,6 @@ namespace tmfem {
 
 // docs/learning/phase4.md sections 1 to 4: rho c dT/dt = div(k grad T) + q - (2 h_f / t_z)(T - T_inf)
 // on a 2D mesh of T3 or T6 cells, consistent capacity only (no row-sum lumping: T6 corners would get 0).
-using ScalarField = std::function<double(const Eigen::Vector2d& x_m)>;
 using SpaceTimeField = std::function<double(const Eigen::Vector2d& x_m, double t_s)>;
 
 struct TemperatureBC2D {  // T = T_K(t) on every node of a physical group

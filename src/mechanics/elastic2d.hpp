@@ -15,8 +15,6 @@
 
 namespace tmfem {
 
-using ScalarField = std::function<double(const Eigen::Vector2d& x_m)>;
-
 // A pivot below this fraction of the largest one means the stiffness is singular to round-off. Well-posed
 // meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
 inline constexpr double kMinRelativePivot = 1e-10;

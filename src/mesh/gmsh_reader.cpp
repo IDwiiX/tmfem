@@ -87,7 +87,6 @@ void read_nodes(std::istream& in, std::vector<std::size_t>& tags, std::vector<st
     std::size_t n = 0;
     in >> dim >> entity >> parametric >> n;
     if (parametric != 0) fail("parametric node coordinates are not supported");
-    const std::size_t first = tags.size();
     for (std::size_t i = 0; i < n; ++i) {
       std::size_t t = 0;
       in >> t;
@@ -98,7 +97,7 @@ void read_nodes(std::istream& in, std::vector<std::size_t>& tags, std::vector<st
       in >> p[0] >> p[1] >> p[2];
       xyz.push_back(p);
     }
-    if (tags.size() != first + n) fail("node block size mismatch");
+    if (!in) fail("truncated node block");
   }
   expect(in, "$EndNodes");
 }

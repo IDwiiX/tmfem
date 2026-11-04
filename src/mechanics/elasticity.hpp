@@ -17,6 +17,9 @@ struct ElasticMaterial {
   double nu;
 };
 
+// Throws unless E > 0 and -1 < nu < 1/2, the range in which the moduli are finite and positive.
+void require_valid(const ElasticMaterial& m);
+
 Eigen::Matrix3d elasticity_matrix(const ElasticMaterial& m, PlaneCondition plane);
 double shear_modulus(const ElasticMaterial& m);
 // Kolosov constant: (3 - nu)/(1 + nu) in plane stress, 3 - 4 nu in plane strain.

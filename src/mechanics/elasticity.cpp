@@ -8,7 +8,14 @@
 
 namespace tmfem {
 
+void require_valid(const ElasticMaterial& m) {
+  if (!(m.E_Pa > 0.0) || !(m.nu > -1.0 && m.nu < 0.5)) {
+    throw std::invalid_argument("ElasticMaterial: need E > 0 and -1 < nu < 0.5");
+  }
+}
+
 Eigen::Matrix3d elasticity_matrix(const ElasticMaterial& m, PlaneCondition plane) {
+  require_valid(m);
   const double E = m.E_Pa, nu = m.nu;
   Eigen::Matrix3d D;
   if (plane == PlaneCondition::PlaneStress) {

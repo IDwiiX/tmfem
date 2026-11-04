@@ -8,6 +8,7 @@
 
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/elastoplastic2d.hpp"
+#include "mechanics/elasticity.hpp"
 #include "mesh/gmsh_reader.hpp"
 #include "support/paths.hpp"
 
@@ -63,4 +64,11 @@ TEST_CASE("ElastoplasticSolver handles a fully constrained mesh", "[phase2][mech
   CHECK(solver.step_to(1.0).converged);
   const auto& mesh = solver.problem().mesh;
   for (int i = 0; i < mesh.n_nodes(); ++i) CHECK(solver.displacement_m()(2 * i) == 1e-3 * mesh.x_m(i, 0));
+}
+
+TEST_CASE("elasticity_matrix rejects an unphysical material", "[phase2][mechanics]") {
+  CHECK_THROWS_AS(elasticity_matrix({200e9, 0.5}, PlaneCondition::PlaneStrain), std::invalid_argument);
+  CHECK_THROWS_AS(elasticity_matrix({200e9, -1.0}, PlaneCondition::PlaneStress), std::invalid_argument);
+  CHECK_THROWS_AS(elasticity_matrix({0.0, 0.3}, PlaneCondition::PlaneStress), std::invalid_argument);
+  CHECK_NOTHROW(elasticity_matrix({200e9, 0.0}, PlaneCondition::PlaneStrain));
 }

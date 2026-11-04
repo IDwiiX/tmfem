@@ -159,16 +159,16 @@ void write_end_of_pulse(const std::filesystem::path& dir, const Mesh& mesh, cons
 }
 
 void write_history(const std::filesystem::path& path, const std::vector<BeamSnapshot>& h) {
-  std::vector<std::vector<double>> cols(9);
+  const std::vector<std::string> header{"t_s", "T_max_K", "dT_centre_K", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa",
+                                        "sxx_centre_MPa", "szz_centre_MPa", "vm_centre_MPa"};
+  std::vector<std::vector<double>> cols(header.size());
   for (const BeamSnapshot& s : h) {
     const double v[] = {s.t_s, s.T_max_K, s.dT_centre_K, s.vm_max_Pa / kPaPerMPa, s.s1_max_Pa / kPaPerMPa,
                         s.s3_min_Pa / kPaPerMPa, s.sxx_centre_Pa / kPaPerMPa, s.szz_centre_Pa / kPaPerMPa,
                         s.vm_centre_Pa / kPaPerMPa};
     for (std::size_t j = 0; j < cols.size(); ++j) cols[j].push_back(v[j]);
   }
-  write_csv(path, {"t_s", "T_max_K", "dT_centre_K", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "sxx_centre_MPa",
-                   "szz_centre_MPa", "vm_centre_MPa"},
-            cols, {"demo D4 history; first row = end of pulse"});
+  write_csv(path, header, cols, {"demo D4 history; first row = end of pulse"});
 }
 
 }  // namespace

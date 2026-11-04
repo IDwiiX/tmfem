@@ -257,7 +257,12 @@ std::vector<BeamRunResult> run_thermomech2d_case(const BeamBlockCase& c) {
   std::printf("Demo D4 (not a validation): %s, %s, E_l = %g J/m, tau = %g s\n", m.name.c_str(),
               c.plane == PlaneCondition::PlaneStrain ? "plane strain" : "plane stress", c.E_l_J_m, c.pulse_s);
   std::vector<BeamRunResult> results;
-  std::vector<std::vector<double>> sweep(16), sens(6);
+  const std::vector<std::string> sweep_header{
+      "s_mm", "dT0_estimate_K", "dT_centre_K", "vm_centre_estimate_MPa", "vm_centre_MPa", "szz_centre_estimate_MPa",
+      "szz_centre_MPa", "vm_peak_MPa", "s1_peak_MPa", "s3_peak_MPa", "T_max_end_of_pulse_K", "strength_ratio",
+      "compressive_ratio", "gps_shift_percent", "energy_stored_J_m", "energy_deposited_J_m"};
+  const std::vector<std::string> sens_header{"s_mm", "nu", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "szz_centre_MPa"};
+  std::vector<std::vector<double>> sweep(sweep_header.size()), sens(sens_header.size());
   for (const double s_mm : c.beam_sizes_mm) {
     const BeamRunResult r = run_beam_size(c, s_mm);
     const BeamSnapshot& e = r.history.front();
@@ -302,15 +307,10 @@ std::vector<BeamRunResult> run_thermomech2d_case(const BeamBlockCase& c) {
     }
     results.push_back(r);
   }
-  write_csv(c.output_dir / "sweep.csv",
-            {"s_mm", "dT0_estimate_K", "dT_centre_K", "vm_centre_estimate_MPa", "vm_centre_MPa", "szz_centre_estimate_MPa",
-             "szz_centre_MPa", "vm_peak_MPa", "s1_peak_MPa", "s3_peak_MPa", "T_max_end_of_pulse_K", "strength_ratio",
-             "compressive_ratio", "gps_shift_percent", "energy_stored_J_m", "energy_deposited_J_m"},
-            sweep, {"demo D4 " + m.name + " (not a validation); estimates: infinite plane strain, section 11"});
+  write_csv(c.output_dir / "sweep.csv", sweep_header, sweep,
+            {"demo D4 " + m.name + " (not a validation); estimates: infinite plane strain, section 11"});
   if (!m.nu_sensitivity.empty()) {
-    write_csv(c.output_dir / "nu_sensitivity.csv",
-              {"s_mm", "nu", "vm_max_MPa", "s1_max_MPa", "s3_min_MPa", "szz_centre_MPa"}, sens,
-              {"demo D4 " + m.name + ", end of pulse"});
+    write_csv(c.output_dir / "nu_sensitivity.csv", sens_header, sens, {"demo D4 " + m.name + ", end of pulse"});
   }
   return results;
 }

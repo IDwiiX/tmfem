@@ -22,6 +22,7 @@ namespace {
 constexpr double kPaPerMPa = 1e6;
 constexpr double kPaPerGPa = 1e9;
 constexpr double kPi = 3.14159265358979323846;
+constexpr double kMetrePerMm = 1e-3;
 
 std::string format_mm(double s_mm) {
   char buf[32];
@@ -207,7 +208,7 @@ BeamBlockCase load_thermomech2d_case(const std::filesystem::path& json_path, con
 }
 
 BeamRunResult run_beam_size(const BeamBlockCase& c, double s_mm) {
-  const double s_m = s_mm * 1e-3;
+  const double s_m = s_mm * kMetrePerMm;
   const Mesh mesh = read_gmsh41(mesh_path(c, s_mm));
   const std::vector<int> centre_nodes = mesh.nodes_of("centre");
   if (centre_nodes.size() != 1) throw std::runtime_error("thermomech2d: physical point 'centre' must hold one node");
@@ -260,7 +261,7 @@ std::vector<BeamRunResult> run_thermomech2d_case(const BeamBlockCase& c) {
   for (const double s_mm : c.beam_sizes_mm) {
     const BeamRunResult r = run_beam_size(c, s_mm);
     const BeamSnapshot& e = r.history.front();
-    const double s_m = s_mm * 1e-3;
+    const double s_m = s_mm * kMetrePerMm;
     const double dT0 = c.E_l_J_m / (2 * kPi * s_m * s_m * rho_c);
     const double vm_est = m.E_Pa * m.alpha_per_K * dT0 / (2 * (1 - m.nu));  // infinite plane strain, centre
     const double szz_est = -m.E_Pa * m.alpha_per_K * dT0 / (1 - m.nu);

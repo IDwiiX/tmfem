@@ -27,6 +27,8 @@ void write_csv(const std::filesystem::path& path, const std::vector<std::string>
     }
     out << '\n';
   }
+  out.flush();
+  if (!out) throw std::runtime_error("write_csv: write failed for " + path.string());
 }
 
 }  // namespace tmfem

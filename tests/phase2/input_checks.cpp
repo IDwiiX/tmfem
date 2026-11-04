@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "io/csv_writer.hpp"
 #include "mechanics/elastic2d.hpp"
 #include "mechanics/elastoplastic2d.hpp"
 #include "mechanics/elasticity.hpp"
@@ -71,4 +72,9 @@ TEST_CASE("elasticity_matrix rejects an unphysical material", "[phase2][mechanic
   CHECK_THROWS_AS(elasticity_matrix({200e9, -1.0}, PlaneCondition::PlaneStress), std::invalid_argument);
   CHECK_THROWS_AS(elasticity_matrix({0.0, 0.3}, PlaneCondition::PlaneStress), std::invalid_argument);
   CHECK_NOTHROW(elasticity_matrix({200e9, 0.0}, PlaneCondition::PlaneStrain));
+}
+
+TEST_CASE("write_csv reports a failed write", "[phase2][io]") {
+  if (!std::filesystem::exists("/dev/full")) SKIP("needs /dev/full");
+  CHECK_THROWS_AS(write_csv("/dev/full", {"a"}, {{1.0}}), std::runtime_error);
 }

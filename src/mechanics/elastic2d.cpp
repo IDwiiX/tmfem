@@ -13,10 +13,6 @@ namespace tmfem {
 
 namespace {
 
-// A pivot below this fraction of the largest one means K_ff is singular to round-off. Well-posed
-// meshes here stay many orders above it; a missed rigid mode gives about 1e-15.
-constexpr double kMinRelativePivot = 1e-10;
-
 // Two conditions on one dof count as the same value within this tolerance, scaled by 1 + |v|.
 constexpr double kDirichletMatchTolerance = 1e-14;
 

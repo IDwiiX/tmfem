@@ -13,9 +13,6 @@ namespace tmfem {
 
 namespace {
 
-// Same singularity guard as solve_elastic2d (docs/learning/phase2.md section 7).
-constexpr double kMinRelativePivot = 1e-10;
-
 std::vector<int> constrained_list(const std::map<int, double>& bc, Eigen::VectorXd& values) {
   std::vector<int> dofs;
   values.resize(static_cast<Eigen::Index>(bc.size()));
